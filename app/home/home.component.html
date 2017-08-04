@@ -1,0 +1,10 @@
+﻿<div class="col-md-6 col-md-offset-3">
+    <h1>Hi {{currentUser.name}}!</h1>
+   
+    <ul>
+        <li *ngFor="let user of users">
+            {{user.username}} ({{user.name}} {{user.roleID}})
+            - <a (click)="deleteUser(user.id)">Delete</a>
+        </li>
+    </ul>
+</div>
