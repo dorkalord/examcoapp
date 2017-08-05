@@ -10,6 +10,7 @@ export class Question{
     
     arguments: Argument[];
     tags: Tag[];
+    child: Question[];
 }
 
 export class Argument{

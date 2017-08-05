@@ -23,7 +23,7 @@ export class Anwser{
     note: string;
 
     examAttemtID: number;
-    qestionID: number;
+    questionID: number;
 
     mistakes: Mistake[];
 }
