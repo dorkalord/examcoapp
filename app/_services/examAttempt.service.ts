@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Http, Headers, RequestOptions, Response } from '@angular/http';
 
 import { AppConfig } from '../app.config';
-import { ExamAttempt } from '../_models/examAttempt';
+import { ExamAttempt, ExamAttempt2 } from '../_models/examAttempt';
 
 @Injectable()
 export class ExamAttemptService {
@@ -24,7 +24,7 @@ export class ExamAttemptService {
         return this.http.post(this.config.apiUrl + '/examAttempt', examAttempt, this.jwt()).map((response: Response) => response.json());
     }
 
-    update(examAttempt: ExamAttempt) {
+    update(examAttempt: ExamAttempt2) {
         return this.http.put(this.config.apiUrl + '/examAttempt/' + examAttempt.id, examAttempt, this.jwt()).map((response: Response) => response.json());
     }
 

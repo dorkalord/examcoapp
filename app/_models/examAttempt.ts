@@ -1,4 +1,5 @@
 import { Censor } from './censor';
+import { ArgumentCriterea } from './question';
 export class ExamAttempt {
     id: number;
     total: number;
@@ -12,7 +13,7 @@ export class ExamAttempt {
     studentID: number;
 
     anwsers: Anwser[];
-    generalCritereaImpacts :GeneralCritereaImpacts[];
+    generalCritereaImpacts :GeneralCritereaImpact[];
 }
 
 export class Anwser{
@@ -21,6 +22,7 @@ export class Anwser{
     finalTotal: number;
     censorshipDate: string;
     note: string;
+    adjustment: number;
 
     examAttemtID: number;
     questionID: number;
@@ -36,13 +38,45 @@ export class Mistake{
     anwserID: number;
 }
 
-export class GeneralCritereaImpacts{
+export class GeneralCritereaImpact{
     id: number;
     weight: number;
 
-    examAttemtID: number;
+    examAttemptID: number;
     anwserID: number;
     mistakeID: number;
     examCritereaID: number;
 }
 
+export class ExamAttempt2 {
+    id: number;
+    total: number;
+    finalTotal: number;
+
+    gradeID: number;
+    examID: number;
+    censorID: number;
+    studentID: number;
+
+    anwsers: Anwser[];
+    generalCritereaImpacts :GeneralCritereaImpact[];
+}
+
+export class Argument2{
+    id: number;
+    authorID: number;
+    parentArgumentID: number;
+    questionID: number;
+
+    text: string;
+    advice: string;
+    defaultWeight: number;
+    variable: boolean;
+    minMistakeText: string;
+    maxMistakeText: string;
+    minMistakeWeight: number;
+    maxMistakeWeight: number;
+
+    argumentCritereas: ArgumentCriterea[];
+    checked: boolean;
+}

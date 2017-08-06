@@ -40,6 +40,9 @@ import { ExamAttemptListComponent } from './ExamAttempt/examAttempt-list';
 import { ExamAttemptDataTransferService } from './_services/examAttempt-datatransfer.service';
 import { ExamAttemptService } from './_services/examAttempt.service';
 import { ExamAttemptEditComponent } from './ExamAttempt/edit/examAttempt-edit.component';
+import { MistakeService } from './_services/mistake.service';
+import { ExamAttemptArgumentComponent } from './ExamAttempt/edit/examAttempt-argument.component';
+import { GeneralCritereaImpactService } from './_services/generalCritereaImpact.service';
 
 @NgModule({
     imports: [
@@ -70,7 +73,8 @@ import { ExamAttemptEditComponent } from './ExamAttempt/edit/examAttempt-edit.co
         CritereaComponent,
         HeaderComponent,
         ExamAttemptListComponent,
-        ExamAttemptEditComponent
+        ExamAttemptEditComponent,
+        ExamAttemptArgumentComponent
     ],
     providers: [
         AppConfig,
@@ -88,7 +92,9 @@ import { ExamAttemptEditComponent } from './ExamAttempt/edit/examAttempt-edit.co
         ExamDataTransferService,
         CensorService,
         ExamAttemptDataTransferService,
-        ExamAttemptService
+        ExamAttemptService,
+        MistakeService,
+        GeneralCritereaImpactService
     ],
     bootstrap: [AppComponent]
 })

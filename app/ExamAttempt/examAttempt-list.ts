@@ -9,7 +9,7 @@ import { ExamAttemptService } from '../_services/examAttempt.service';
 import { ExamService } from '../_services/exam.service';
 import { ExamAttemptDataTransferService } from '../_services/examAttempt-datatransfer.service';
 import { Router } from '@angular/router';
-import { Exam } from '../_models/exam';
+import { Exam, ExamFull } from '../_models/exam';
 
 @Component({
     moduleId: module.id,
@@ -21,7 +21,7 @@ import { Exam } from '../_models/exam';
 export class ExamAttemptListComponent implements OnInit {
     currentUser: User;
     loading: boolean;
-    currentExam: Exam;
+    currentExam: ExamFull;
     examAttemptList: ExamAttempt[];
 
     constructor(private userService: UserService,
@@ -43,11 +43,11 @@ export class ExamAttemptListComponent implements OnInit {
     edit(attemptID: number) {
         this.loading = true;
         this.examService.getByIdForCensoring(this.currentExam.id).subscribe(data => {
-            
+
             this.examAttemptDataTransferService.currentExam = data;
             this.examAttemptService.getById(attemptID).subscribe(res => {
                 this.examAttemptDataTransferService.currentExamAttempt = res;
-                
+
                 this.router.navigateByUrl('/attempts/' + res.id + '/edit');
             });
         });
@@ -56,7 +56,7 @@ export class ExamAttemptListComponent implements OnInit {
     create() {
         this.loading = true;
         let attempt: ExamAttempt = new ExamAttempt();
-         console.log("attempt", this.examAttemptDataTransferService.currentExam);
+        console.log("attempt", this.examAttemptDataTransferService.currentExam);
         attempt.examID = this.examAttemptDataTransferService.currentExam.id;
         attempt.censorID = this.examAttemptDataTransferService.currentCensor.id;
         attempt.studentID = 4;

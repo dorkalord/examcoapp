@@ -3,145 +3,134 @@
 </h2>
 Points {{currentAttempt.total}}
 <div class="container panel">
-    <div class="panel-heading">
-        <h3>Q1: {{currentQuestion.text}}</h3>
-        <div class="row">
-            <div class="col-xs-2">
-                <div class="form-check">
-                    <label class="form-check-label">
-              <input type="radio" class="form-check-input" name="optionsRadios" [(ngModel)]="completions[currentQuestionIndex]" (change)="changeCompletion()" value="Correct" />
-              Correct</label>
+    <form [formGroup]="myForm">
+        <div class="panel-heading">
+            <h3>Q{{currentQuestionIndex+1}}: {{myForm.value.questionText}}</h3>
+            <div class="row">
+                <div class="col-xs-2">
+                    <div class="form-check">
+                        <label class="form-check-label">
+                        <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion()" value="Correct" />
+                        Correct</label>
+                    </div>
                 </div>
-            </div>
-            <div class="col-xs-2">
-                <div class="form-check">
-                    <label class="form-check-label">
-              <input type="radio" class="form-check-input" name="optionsRadios" [(ngModel)]="completions[currentQuestionIndex]" (change)="changeCompletion()" value="Blank" />
-              Blank</label>
+                <div class="col-xs-2">
+                    <div class="form-check">
+                        <label class="form-check-label">
+                        <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion()" value="Blank" />
+                        Blank</label>
+                    </div>
                 </div>
-            </div>
-            <div class="col-xs-2">
-                <div class="form-check">
-                    <label class="form-check-label">
-              <input type="radio" class="form-check-input" name="optionsRadios" [(ngModel)]="completions[currentQuestionIndex]" (change)="changeCompletion()" value="Attempted" />
-              Attempted</label>
+                <div class="col-xs-2">
+                    <div class="form-check">
+                        <label class="form-check-label">
+                        <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion()" value="Attempted"/>
+                        Attempted</label>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="panel-body">
-        <form *ngIf="completions[currentQuestionIndex] === 'Attempted'">
-            <div class="form-group">
-                <label>Points {{currentAttempt.anwsers[currentQuestionIndex].total}} </label>
-                <progress value="{{currentAttempt.anwsers[currentQuestionIndex].total}}" max="100" style="width:100%" class="form-control"></progress>
-            </div>
-            <div class="form-group">
-                <label>Adjustment #adjustment</label>
-                <input type="range" min="-100" max="100" value="0" class="form-control" />
-            </div>
 
+        <div class="panel-body">
             <div class="container panel" style="background-color: lavender">
                 <div class="panel-heading">
                     <h4>Justifications</h4>
                 </div>
                 <div class="panel-body">
+                    <div class="form-group">
+                        <label>Points</label>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="min-width: 1em;"
+                                [attr.aria-valuenow]="myForm.value.total" [style.width]="(myForm.value.total/100)*100 + '%'">
+                                {{myForm.value.total}}
+                            </div>
+                        </div>
+                    </div>
+
+
                     <div class="row" style="margin-bottom: 10px; font-weight: bold">
                         <div class="col-md-4">Justification</div>
                         <div class="col-md-6">Censor defined severity</div>
                     </div>
                     <hr style="margin:0px; border-top: 1px solid #ddd;" />
-
-                    <div *ngFor="let arg of currentQuestion.arguments">
-
-                        <hr style="margin:0px; border-top: 1px solid #ddd;" />
-                        <div class="row" style="padding:5px">
-                            <div class="col-md-4">
-                                <input type="checkbox" class="form-control" style="display:inline; width:20px; height:20px" (change)="changeArg($event.target.checked, arg.id, arg.questionID)"
-                                />
-                                <div style="display:inline; vertical-align:super"> {{arg.text}} </div>
-                            </div>
-                            <div class="col-md-6" *ngIf="arg.variable">
-                                <span> {{arg.maxMistakeText}} </span>
-                                <input type="range" min="arg.maxMistakeWeight" max="arg.minMistakeWeight" />
-                                <span class="pull-right"> {{arg.minMistakeText}} </span></div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="container panel" *ngFor="let question of currentQuestion.childs">
-                    <div class="panel-heading">
-                        <h4>{{question.text}}</h4>
-                    </div>
-                    <div class="panel-body">
-                        <div class="row" style="margin-bottom: 10px; font-weight: bold">
-                            <div class="col-md-4">Justification</div>
-                            <div class="col-md-6">Censor defined severity</div>
-                        </div>
-                        <hr style="margin:0px; border-top: 1px solid #ddd;" />
-
-                        <div *ngFor="let arg of question.arguments">
-
+                    <div formArrayName="arguments">
+                        <div *ngFor="let arg of myForm.controls.arguments.controls; let i=index">
                             <hr style="margin:0px; border-top: 1px solid #ddd;" />
-                            <div class="row" style="padding:5px">
+                            <div [formGroupName]="i" class="row" style="padding:5px">
                                 <div class="col-md-4">
-                                    <input type="checkbox" class="form-control" style="display:inline; width:20px; height:20px" (change)="changeArg($event.target.checked, arg.id, arg.questionID)"
-                                    />
-                                    <div style="display:inline; vertical-align:super"> {{arg.text}} </div>
+
+                                    <input type="checkbox" formControlName="apliesTo" style="width:20px; height:20px" (change)="changeArg($event.target.checked, arg.value.id, arg.value.questionID)"/>
+
+                                    <div style="display:inline; vertical-align:super"> {{arg.value.text}} </div>
+
                                 </div>
-                                <div class="col-md-6" *ngIf="arg.variable">
-                                    <span> {{arg.maxMistakeText}} </span>
-                                    <input type="range" min="arg.maxMistakeWeight" max="arg.minMistakeWeight" />
-                                    <span class="pull-right"> {{arg.minMistakeText}} </span></div>
+                                <div class="col-md-6" *ngIf="arg.value.variable">
+
+                                    <span> {{arg.value.maxMistakeText}} </span>
+
+                                    <input type="range" min="arg.value.maxMistakeWeight" max="arg.value.minMistakeWeight" value="arg.value.maxMistakeWeight"
+                                    />
+                                    <span class="pull-right"> {{arg.value.minMistakeText}} </span>
+
+                                </div>
                             </div>
                         </div>
-
                     </div>
-                </div>
-
-            </div>
 
 
-            <div class="container panel" style="background-color: lavender">
-                <div class="panel-heading">
-                    <h4>General criterea</h4>
-                </div>
-                <div class="panel-body">
-                    <div class="row" style="margin-bottom: 10px; font-weight: bold">
-                        <div class="col-md-4">Criterea</div>
-                        <div class="col-md-2">Impact from mistakes</div>
-                        <div class="col-md-2">Adjustment</div>
-                        <div class="col-md-3">final</div>
+                    <div class="form-group">
+                        <label>Adjustment</label>
+                        <input type="number" value="0" class="form-control" formControlName="adjustment" />
                     </div>
-                    <hr style="margin:0px; border-top: 1px solid #ddd;" />
 
-                    <div *ngFor="let crit of critereaDisplayList; let i=index">
-                        <hr style="margin:0px; border-top: 1px solid #ddd;" />
-                        <div class="row" style="padding:5px">
-                            <div class="col-md-4">
-                                <span style="vertical-align:super"> {{crit.name}} </span>
-                            </div>
-                            <div class="col-md-2"> {{crit.calculated}} </div>
-                            <div class="col-md-2">
-                                <input type="number" class="form-control" [value]="critereaDisplayList[i].adjustment" (input)="adjustImpact($event.target.value,i)"
-                                />
-                            </div>
-                            <div class="col-md-3"> {{crit.total}} </div>
-                        </div>
+                    <div class="form-group">
+                        <label>Comnment</label>
+                        <input type="text" class="form-control" formControlName="note" />
                     </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label>Comnment</label>
-                <input type="text" class="form-control" /></div>
-        </form>
-        <div class="btn-group pull-right" role="group">
-            <button type="button" class="btn btn-primary" (click)="moveTo(currentQuestionIndex-1)" *ngIf="currentQuestionIndex>0">previous</button>
-            <button type="button" class="btn btn-info">jump to</button>
-            <button type="button" class="btn btn-primary" (click)="moveTo(currentQuestionIndex+1)" *ngIf="currentQuestionIndex<questionDisplayList.length-1 && completions[currentQuestionIndex]!=null">next</button></div>
+
+        </div>
+    </form>
+    <div class="btn-group pull-right" role="group">
+        <button type="button" class="btn btn-primary" (click)="moveTo(currentQuestionIndex-1)" *ngIf="currentQuestionIndex>0">previous</button>
+        <button type="button" class="btn btn-info">jump to</button>
+        <button type="button" class="btn btn-primary" (click)="moveTo(currentQuestionIndex+1)" *ngIf="currentQuestionIndex<questionDisplayList.length-1 && myForm.value.completion!=null">next</button>
+    </div>
+
+</div>
+
+<div class="container panel">
+    <div class="panel-heading">
+        <h4>General criterea</h4>
+    </div>
+    <div class="panel-body">
+        <div class="row" style="margin-bottom: 10px; font-weight: bold">
+            <div class="col-md-4">Criterea</div>
+            <div class="col-md-2">Impact from mistakes</div>
+            <div class="col-md-2">Adjustment</div>
+            <div class="col-md-3">final</div>
+        </div>
+        <hr style="margin:0px; border-top: 1px solid #ddd;" />
+
+        <div *ngFor="let crit of critereaDisplayList; let i=index">
+            <hr style="margin:0px; border-top: 1px solid #ddd;" />
+            <div class="row" style="padding:5px">
+                <div class="col-md-4">
+                    <span style="vertical-align:super"> {{crit.name}} </span>
+                </div>
+                <div class="col-md-2"> {{crit.calculated}} </div>
+                <div class="col-md-2">
+                    <input type="number" class="form-control" [value]="critereaDisplayList[i].adjustment" (input)="adjustImpact($event.target.value,i)"
+                    />
+                </div>
+                <div class="col-md-3"> {{crit.total}} </div>
+            </div>
+        </div>
     </div>
 </div>
+
 <div class="margin-20">
-    <pre>completion {{critereaDisplayList | json }} </pre>
+    <pre>form {{myForm.value | json }} </pre>
     <pre>currentAttempt {{currentAttempt | json}} </pre>
 </div>
