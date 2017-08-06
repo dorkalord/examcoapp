@@ -61,7 +61,8 @@ export class ExamAttemptEditComponent implements OnInit {
                 this.questionDisplayList.push({
                     id: element.id, examID: element.examID, parentQuestionID: null,
                     seqencialNumber: element.seqencialNumber, text: element.text, proposedWeight: element.proposedWeight, finalWeight: element.finalWeight,
-                    arguments: [], tags: [], childs: []
+                    arguments: element.arguments,
+                    tags: [], childs: []
                 });
             }
             else {
@@ -117,7 +118,7 @@ export class ExamAttemptEditComponent implements OnInit {
     initArguments(args: Argument[], a: Anwser) {
         let arr: any[] = [];
         let temp: any, b: boolean = false;
-
+        console.log("aergs", args);
 
         args.forEach(element => {
             b = false;
@@ -154,6 +155,8 @@ export class ExamAttemptEditComponent implements OnInit {
     moveTo(i: number) {
         this.currentQuestionIndex = i;
         this.currentQuestion = this.questionDisplayList[this.currentQuestionIndex];
+        this.myForm = this.initAnwser(this.currentQuestion);
+        this.updateStats(this.currentQuestionIndex);
     }
 
     changeCompletion() {
@@ -161,6 +164,7 @@ export class ExamAttemptEditComponent implements OnInit {
         console.log("completion", this.myForm.value.completion);
         if (this.myForm.value.completion !== "Blank") { val = 100; }
         this.myForm.value.total = val;
+        this.updateStats(this.currentQuestionIndex);
     }
 
     changeSlider(value: any, argID: number, questionID: number) {
@@ -201,12 +205,13 @@ export class ExamAttemptEditComponent implements OnInit {
 
             //add to the server
             this.mistakeService.create(newMistatake).subscribe(data => {
+                newMistatake.id = data.id;
                 this.currentAttempt.anwsers[anwserIndex].mistakes.push(newMistatake);
                 (<FormArray>this.myForm.controls['mistakes']).push(this._fb.group(data));
-                
+
                 //add all of the criterea impacts
                 let criterea: GeneralCritereaImpact[] = [];
-                let gc: GeneralCritereaImpact;
+                let gc: any;
                 argument.argumentCritereas.forEach(ac => {
                     gc = {
                         anwserID: this.currentAttempt.anwsers[anwserIndex].id,
@@ -218,15 +223,14 @@ export class ExamAttemptEditComponent implements OnInit {
                     console.log(JSON.stringify(gc));
                     criterea.push(gc);
                 });/**/
-                
-                this.generalCritereaImpactService.createMany(criterea).subscribe(data => {
-                    newMistatake.id = data.id;
 
-                    this.currentAttempt.anwsers[anwserIndex].total -= argument.defaultWeight;
-                    
+                this.generalCritereaImpactService.createMany(criterea).subscribe(data => {
+
+                    this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total -= argument.defaultWeight;
 
                     this.examAttemptService.update(this.currentAttempt).subscribe(data => {
                         this.currentAttempt = data;
+                        console.log("data attempt", data);
                         this.loading = false;
                         this.updateStats(qindex);
                     });/**/
@@ -238,21 +242,23 @@ export class ExamAttemptEditComponent implements OnInit {
         else {
 
             let m = this.currentAttempt.anwsers[anwserIndex].mistakes.find(x => x.argumentID === argID);
+            this.mistakeService.delete(m.id).subscribe( res => {
 
-            let mi = this.currentAttempt.anwsers[anwserIndex].mistakes.findIndex(x => x.argumentID === argID);
-            for (var i = this.currentAttempt.generalCritereaImpacts.length - 1; i >= 0; i) {
-                if (this.currentAttempt.generalCritereaImpacts[i].anwserID === m.id) {
-                    this.currentAttempt.generalCritereaImpacts.splice(i, 1);
+                let mi = this.currentAttempt.anwsers[anwserIndex].mistakes.findIndex(x => x.argumentID === argID);
+                for (var i = this.currentAttempt.generalCritereaImpacts.length - 1; i >= 0; i--) {
+                    if (this.currentAttempt.generalCritereaImpacts[i].anwserID === m.id) {
+                        this.currentAttempt.generalCritereaImpacts.splice(i, 1);
+                    }
                 }
-            }
-    
-            this.currentAttempt.anwsers[anwserIndex].mistakes.splice(mi, 1);
-            this.currentAttempt.anwsers[anwserIndex].total += argument.defaultWeight;
-            this.updateStats(qindex);
-            /*this.examAttemptService.update(this.currentAttempt).subscribe(data => {
-                this.currentAttempt = data;
-            });*/
-            //remove general criterea
+                this.currentAttempt.anwsers[anwserIndex].mistakes.splice(mi, 1);
+                this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total += argument.defaultWeight;
+               
+                this.examAttemptService.update(this.currentAttempt).subscribe(data => {
+                    this.currentAttempt = data;
+                     this.updateStats(qindex);
+                });
+                //remove general criterea
+            });
         }
 
         console.log("current", this.currentAttempt);
