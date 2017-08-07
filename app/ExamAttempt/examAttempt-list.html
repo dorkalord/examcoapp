@@ -4,6 +4,7 @@
             <tr>
                 <th>Student</th>
                 <th>Date of censorship</th>
+                <th>Total</th>
                 <th>Options</th>
             </tr>
         </thead>
@@ -11,6 +12,7 @@
             <tr *ngFor="let attempt of examAttemptList ">
                 <td>{{attempt.studentID}}</td>
                 <td>{{attempt.censorshipDate | date:"dd.MM.yyyy H:mm" }}</td>
+                <td>{{attempt.total}}</td>
                 <td>
                     <div class="btn-group" role="group">
                         <button type="button" class="btn btn-primary" (click)="edit(attempt.id)">

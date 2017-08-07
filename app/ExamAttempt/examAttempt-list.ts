@@ -70,8 +70,9 @@ export class ExamAttemptListComponent implements OnInit {
     }
 
     remove(id: number) {
-        alert("not implemented jet");
+        this.examAttemptService.delete(id).subscribe(res =>{
+            let i = this.examAttemptList.findIndex(x=>x.id == id);
+            this.examAttemptList.splice(i,1);
+        });
     }
-
-
 }
