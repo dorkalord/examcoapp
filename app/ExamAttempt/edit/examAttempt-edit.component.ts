@@ -128,7 +128,7 @@ export class ExamAttemptEditComponent implements OnInit {
 
         args.forEach(element => {
             b = false;
-            s = 0;
+            s = element.maxMistakeWeight / 2;
             m = a.mistakes.find(x => x.argumentID === element.id)
             if (m != null) {
                 b = true;
@@ -172,9 +172,12 @@ export class ExamAttemptEditComponent implements OnInit {
     }
 
     changeCompletion() {
-        let val: number = 0;
+        let val: number = 100;
         console.log("completion", this.myForm.value.completion);
-        if (this.myForm.value.completion !== "Blank") { val = 100; }
+        if (this.myForm.value.completion === "Blank") { 
+            
+            val = 0; 
+        }
         this.myForm.value.total = val;
         this.updateStats(this.currentQuestionIndex);
     }
@@ -187,7 +190,7 @@ export class ExamAttemptEditComponent implements OnInit {
         let index = this.currentAttempt.anwsers[i].mistakes.findIndex(x => x.argumentID === argID);
 
         console.log("argument.maxMistakeWeight", argument.maxMistakeWeight, "argument.minMistakeWeight", argument.minMistakeWeight);
-        this.currentAttempt.anwsers[i].mistakes[index].adjustedWeight = Math.round(argument.defaultWeight * ((argument.maxMistakeWeight - value) / argument.maxMistakeWeight));
+        this.currentAttempt.anwsers[i].mistakes[index].adjustedWeight = Math.round(argument.defaultWeight * ((argument.maxMistakeWeight - value + argument.minMistakeWeight) / argument.maxMistakeWeight));
         this.updateStats(i);
         console.log("curr", this.currentAttempt);
         this.examAttemptService.update(this.currentAttempt).subscribe(data => {
@@ -212,9 +215,10 @@ export class ExamAttemptEditComponent implements OnInit {
         //new mistake
         if (value === true) {
             //create mistake
+            let weight = argument.defaultWeight / (1 + +argument.variable);
             let newMistatake: Mistake = {
                 id: null,
-                adjustedWeight: argument.defaultWeight,
+                adjustedWeight: weight,
 
                 argumentID: argID,
                 anwserID: this.currentAttempt.anwsers[anwserIndex].id

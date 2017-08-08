@@ -8,7 +8,7 @@
     "tsc": "tsc",
     "tsc:w": "tsc -w"
   },
-  "license": "MIT",
+  "license": "",
   "dependencies": {
     "@angular/common": "~4.2.0",
     "@angular/compiler": "~4.2.0",
