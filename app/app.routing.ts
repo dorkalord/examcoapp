@@ -12,6 +12,7 @@ import { ExamEvaluatorComponent } from './exam/create/evaluators/exam-evaluator.
 import { CritereaComponent } from './criterea/criterea.component';
 import { ExamAttemptListComponent } from './ExamAttempt/examAttempt-list';
 import { ExamAttemptEditComponent } from './ExamAttempt/edit/examAttempt-edit.component';
+import { UserListComponent } from './user/user-list.component';
 
 const appRoutes: Routes = [
     { path: '', component: HomeComponent, canActivate: [AuthGuard] },
@@ -30,6 +31,8 @@ const appRoutes: Routes = [
 
     { path: 'attempts/:examID/censor/:censorID', component: ExamAttemptListComponent, canActivate: [AuthGuard]  },
     { path: 'attempts/:examID/edit', component: ExamAttemptEditComponent, canActivate: [AuthGuard]  },
+
+    { path: 'users', component: UserListComponent, canActivate: [AuthGuard]  },
 
     // otherwise redirect to home
     { path: '**', redirectTo: '' }

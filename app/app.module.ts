@@ -44,6 +44,7 @@ import { MistakeService } from './_services/mistake.service';
 import { ExamAttemptArgumentComponent } from './ExamAttempt/edit/examAttempt-argument.component';
 import { GeneralCritereaImpactService } from './_services/generalCritereaImpact.service';
 import { AnwserService } from './_services/anwser.service';
+import { UserListComponent } from './user/user-list.component';
 
 @NgModule({
     imports: [
@@ -75,7 +76,8 @@ import { AnwserService } from './_services/anwser.service';
         HeaderComponent,
         ExamAttemptListComponent,
         ExamAttemptEditComponent,
-        ExamAttemptArgumentComponent
+        ExamAttemptArgumentComponent,
+        UserListComponent
     ],
     providers: [
         AppConfig,

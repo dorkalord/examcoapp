@@ -217,8 +217,11 @@ Points {{currentAttempt.total}}
                 </div>
                 <div class="col-md-2"> {{crit.calculated}} </div>
                 <div class="col-md-2">
-                    <input type="number" class="form-control" [value]="critereaDisplayList[i].adjustment" (input)="adjustImpact($event.target.value,i)"
-                    />
+                    <input type="number" class="form-control" [value]="critereaDisplayList[i].adjustment" max="crit.calculated*-1" min="-100"
+                        (focusout)="adjustImpact($event.target.value,i)" />
+                    <small *ngIf="(critereaDisplayList[i].adjustment + crit.calculated)>0" class="text-danger">
+                        Total sum may be a maximum of 0
+                    </small>
                 </div>
                 <div class="col-md-3"> {{crit.total}} </div>
             </div>

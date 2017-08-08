@@ -295,6 +295,8 @@ export class ExamAttemptEditComponent implements OnInit {
      * @param i 
      */
     adjustImpact(to: number, i: number) {
+        console.log(to, i);
+        if (this.critereaDisplayList[i].calculated + (+to) > 0) { to = this.critereaDisplayList[i].calculated * -1; }
         this.critereaDisplayList[i].adjustment = +to;
         this.critereaDisplayList[i].total = this.critereaDisplayList[i].calculated + this.critereaDisplayList[i].adjustment;
 
@@ -354,10 +356,10 @@ export class ExamAttemptEditComponent implements OnInit {
         if (this.currentAttempt.anwsers[i].adjustment != +e.target.value) {
             this.currentAttempt.anwsers[i].adjustment = +e.target.value;
             this.currentAttempt.anwsers[i].total = +e.target.value;
-            
+
             this.anwserService.update(this.currentAttempt.anwsers[i]).subscribe(res => {
                 this.currentAttempt.anwsers[i] = res;
-                
+
                 this.examAttemptService.update(this.currentAttempt).subscribe(data => {
                     this.currentAttempt = data;
                     this.updateStats(i);
@@ -371,7 +373,7 @@ export class ExamAttemptEditComponent implements OnInit {
         console.log("note change");
         let i = this.currentAttempt.anwsers.findIndex(x => x.id === anwserID);
         this.currentAttempt.anwsers[i].note = e.target.value;
-        this.anwserService.update(this.currentAttempt.anwsers[i]).subscribe(data =>{
+        this.anwserService.update(this.currentAttempt.anwsers[i]).subscribe(data => {
             this.currentAttempt.anwsers[i] = data;
         });
     }

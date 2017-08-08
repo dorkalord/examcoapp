@@ -83,7 +83,7 @@ export class QestionArgumentComponent implements OnInit {
     }
 
     initArgumentCriterea(argumentid: number) {
-        let ac: ArgumentCriterea[] = new Array();
+        let ac = new Array();
         let c = 0;
         this.currentExam.examCriterea.forEach(element => {
             ac.push({
@@ -127,7 +127,6 @@ export class QestionArgumentComponent implements OnInit {
     save(id: number) {
         let field: Argument[] = this.arguments.value;
         let index: number = field.findIndex(x => x.id == id);
-
 
         if (index === -1) {
             this.counter = this.counter + 1;
@@ -178,6 +177,7 @@ export class QestionArgumentComponent implements OnInit {
     }
 
     updateCriterea(weight: number, critereaid: number) {
+        if (weight > 0) weight = 0;
         let ac: ArgumentCriterea[] = this.argumentForm.value.argumentCritereas;
         let index: number = ac.findIndex(a => a.examCritereaID == critereaid);
 

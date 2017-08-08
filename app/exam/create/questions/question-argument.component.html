@@ -71,8 +71,11 @@
                         <td>{{criterea.name}} </td>
                         <td>
                             <div class="form-group">
-                                <input type="number" value="0" min="0" max="100" class="form-control" [(ngModel)]="argumentForm.value.argumentCritereas[i].severity"
-                                    [ngModelOptions]="{standalone: true}">
+                                <input type="number" value="0" min="-100" max="0" class="form-control" [(ngModel)]="argumentForm.value.argumentCritereas[i].severity"
+                                    [ngModelOptions]="{standalone: true}" (change)="updateCriterea($event.target.value, criterea.id)">
+                                <small *ngIf="argumentForm.value.argumentCritereas[i].severity>0" class="text-danger">
+                                    Must be negative number
+                                    </small>
                                 <!--<input #box type="number" value="0" min="0" max="100" class="form-control" 
                                 (blur)="updateCriterea(box.value, criterea.id)">-->
                             </div>

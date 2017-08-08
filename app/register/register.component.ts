@@ -1,14 +1,18 @@
-﻿import { Component } from '@angular/core';
+﻿import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AlertService, UserService } from '../_services/index';
 
 @Component({
     moduleId: module.id,
+    selector: 'register',
     templateUrl: 'register.component.html'
 })
 
+
+
 export class RegisterComponent {
+
     model: any = {};
     loading = false;
 
@@ -22,13 +26,13 @@ export class RegisterComponent {
         this.model.roleID = 4;
         this.userService.create(this.model)
             .subscribe(
-                data => {
-                    this.alertService.success('Registration successful', true);
-                    this.router.navigate(['/login']);
-                },
-                error => {
-                    this.alertService.error(error._body);
-                    this.loading = false;
-                });
+            data => {
+                this.alertService.success('Registration successful', true);
+                this.router.navigate(["/login"]);
+            },
+            error => {
+                this.alertService.error(error._body);
+                this.loading = false;
+            });
     }
 }
