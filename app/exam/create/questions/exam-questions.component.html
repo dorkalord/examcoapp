@@ -15,6 +15,7 @@
         <div class="form-group">
             <label>Parent question</label>
             <select formControlName="parentQuestionID" class="form-control">
+                <option [value]="">None</option>
                 <option *ngFor="let item of questions" [value]="item.id" >{{ item.text }}</option>
             </select>
         </div>

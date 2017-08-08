@@ -10,21 +10,21 @@ Points {{currentAttempt.total}}
                 <div class="col-xs-2">
                     <div class="form-check">
                         <label class="form-check-label">
-                        <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion()" value="Correct" />
+                        <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion(myForm.value.id, $event.target.value)" value="Correct" />
                         Correct</label>
                     </div>
                 </div>
                 <div class="col-xs-2">
                     <div class="form-check">
                         <label class="form-check-label">
-                        <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion()" value="Blank" />
+                        <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion(myForm.value.id, $event.target.value)" value="Blank" />
                         Blank</label>
                     </div>
                 </div>
                 <div class="col-xs-2">
                     <div class="form-check">
                         <label class="form-check-label">
-                        <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion()" value="Attempted"/>
+                        <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion(myForm.value.id, $event.target.value)" value="Attempted"/>
                         Attempted</label>
                     </div>
                 </div>
@@ -40,44 +40,45 @@ Points {{currentAttempt.total}}
                     <div class="form-group">
                         <label>Points</label>
                         <div class="progress">
-                            <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="min-width: 1em;"
-                                [attr.aria-valuenow]="myForm.value.total" [style.width]="(myForm.value.total/100)*100 + '%'">
+                            <div class="progress-bar" role="progressbar" aria-valuenow="myForm.value.max" aria-valuemin="0" aria-valuemax="myForm.value.max"
+                                style="min-width: 1em;" [attr.aria-valuenow]="myForm.value.total" [style.width]="(myForm.value.total/myForm.value.max)*100 + '%'">
                                 {{myForm.value.total}}
                             </div>
                         </div>
                     </div>
+                    <div *ngIf="myForm.value.completion === 'Attempted'">
+                        <div class="row" style="margin-bottom: 10px; font-weight: bold">
+                            <div class="col-md-4">Justification</div>
+                            <div class="col-md-6">Censor defined severity</div>
+                        </div>
+                        <hr style="margin:0px; border-top: 1px solid #ddd;" />
+                        <div formArrayName="arguments">
+                            <div *ngFor="let arg of myForm.controls.arguments.controls; let i=index">
+                                <hr style="margin:0px; border-top: 1px solid #ddd;" />
+                                <div [formGroupName]="i" class="row" style="padding:5px">
+                                    <div class="col-md-4">
 
-                    <div class="row" style="margin-bottom: 10px; font-weight: bold">
-                        <div class="col-md-4">Justification</div>
-                        <div class="col-md-6">Censor defined severity</div>
-                    </div>
-                    <hr style="margin:0px; border-top: 1px solid #ddd;" />
-                    <div formArrayName="arguments">
-                        <div *ngFor="let arg of myForm.controls.arguments.controls; let i=index">
-                            <hr style="margin:0px; border-top: 1px solid #ddd;" />
-                            <div [formGroupName]="i" class="row" style="padding:5px">
-                                <div class="col-md-4">
+                                        <input type="checkbox" formControlName="apliesTo" style="width:20px; height:20px" (change)="changeArg($event.target.checked, arg.value.id, arg.value.questionID)"
+                                        />
+                                        <div style="display:inline; vertical-align:super"> {{arg.value.text}} </div>
+                                    </div>
+                                    <div class="col-md-6" *ngIf="arg.value.variable">
 
-                                    <input type="checkbox" formControlName="apliesTo" style="width:20px; height:20px" (change)="changeArg($event.target.checked, arg.value.id, arg.value.questionID)"
-                                    />
-                                    <div style="display:inline; vertical-align:super"> {{arg.value.text}} </div>
-                                </div>
-                                <div class="col-md-6" *ngIf="arg.value.variable">
-
-                                    <span> {{arg.value.maxMistakeText}} </span>
-                                    <input type="range" min="arg.value.maxMistakeWeight" max="arg.value.minMistakeWeight" value="arg.value.maxMistakeWeight"
-                                        formControlName="variableVal" (change)="changeSlider($event.target.value, arg.value.id, arg.value.questionID)"
-                                    />
-                                    <span class="pull-right"> {{arg.value.minMistakeText}} </span>
+                                        <span> {{arg.value.maxMistakeText}} </span>
+                                        <input type="range" min="arg.value.maxMistakeWeight" max="arg.value.minMistakeWeight" value="arg.value.maxMistakeWeight"
+                                            formControlName="variableVal" (change)="changeSlider($event.target.value, arg.value.id, arg.value.questionID)"
+                                        />
+                                        <span class="pull-right"> {{arg.value.minMistakeText}} </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label>Adjustment</label>
-                        <input type="number" value="0" class="form-control" formControlName="adjustment" (blur)="changedAdjustment(myForm.value.id, $event)"
-                        />
+                        <div class="form-group">
+                            <label>Adjustment</label>
+                            <input type="number" value="0" class="form-control" formControlName="adjustment" (blur)="changedAdjustment(myForm.value.id, $event)"
+                            />
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -87,101 +88,102 @@ Points {{currentAttempt.total}}
                 </div>
 
 
+                <div *ngIf="myForm.value.completion === 'Attempted'">
+                    <div class="container panel" *ngFor="let question of myForm.controls.childs.controls; let a=index;">
 
-                <div class="container panel" *ngFor="let question of myForm.controls.childs.controls; let a=index;">
-
-                    <div [formGroup]="question">
-                        <div class="panel-heading">
-                            <h3>Q{{currentQuestionIndex+1}}.{{a+1}}: {{question.value.questionText}}</h3>
-                            <div class="row">
-                                <div class="col-xs-2">
-                                    <div class="form-check">
-                                        <label class="form-check-label">
-                                            <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion()" value="Correct" />
+                        <div [formGroup]="question">
+                            <div class="panel-heading">
+                                <h3>Q{{currentQuestionIndex+1}}.{{a+1}}: {{question.value.questionText}}</h3>
+                                <div class="row">
+                                    <div class="col-xs-2">
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                            <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion(question.value.id, $event.target.value)" value="Correct" />
                                             Correct</label>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-xs-2">
-                                    <div class="form-check">
-                                        <label class="form-check-label">
-                                            <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion()" value="Blank" />
+                                    <div class="col-xs-2">
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                            <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion(question.value.id, $event.target.value)" value="Blank" />
                                             Blank</label>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-xs-2">
-                                    <div class="form-check">
-                                        <label class="form-check-label">
-                                            <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion()" value="Attempted"/>
+                                    <div class="col-xs-2">
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                            <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion(question.value.id, $event.target.value)" value="Attempted"/>
                                             Attempted</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="panel-body">
-                            <div class="container panel" style="background-color: lavender">
-                                <div class="panel-heading">
-                                    <h4>Justifications</h4>
-                                </div>
-                                <div class="panel-body">
-                                    <div class="form-group">
-                                        <label>Points</label>
-                                        <div class="progress">
-                                            <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="min-width: 1em;"
-                                                [attr.aria-valuenow]="question.value.total" [style.width]="(question.value.total/100)*100 + '%'">
-                                                {{question.value.total}}
+                            <div class="panel-body">
+                                <div class="container panel" style="background-color: lavender">
+                                    <div class="panel-heading">
+                                        <h4>Justifications</h4>
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="form-group">
+                                            <label>Points</label>
+                                            <div class="progress">
+                                                <div class="progress-bar" role="progressbar" aria-valuenow="question.value.max" aria-valuemin="0" aria-valuemax="question.value.max"
+                                                    style="min-width: 1em;" [attr.aria-valuenow]="question.value.total" [style.width]="(question.value.total/question.value.max)*100 + '%'">
+                                                    {{question.value.total}}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <div class="row" style="margin-bottom: 10px; font-weight: bold">
-                                        <div class="col-md-4">Justification</div>
-                                        <div class="col-md-6">Censor defined severity</div>
-                                    </div>
-                                    <hr style="margin:0px; border-top: 1px solid #ddd;" />
-                                    <div formArrayName="arguments">
-                                        <div *ngFor="let arg of question.controls.arguments.controls; let i=index">
+                                        <div *ngIf="question.value.completion === 'Attempted'">
+                                            <div class="row" style="margin-bottom: 10px; font-weight: bold">
+                                                <div class="col-md-4">Justification</div>
+                                                <div class="col-md-6">Censor defined severity</div>
+                                            </div>
                                             <hr style="margin:0px; border-top: 1px solid #ddd;" />
-                                            <div [formGroupName]="i" class="row" style="padding:5px">
-                                                <div class="col-md-4">
+                                            <div formArrayName="arguments">
+                                                <div *ngFor="let arg of question.controls.arguments.controls; let i=index">
+                                                    <hr style="margin:0px; border-top: 1px solid #ddd;" />
+                                                    <div [formGroupName]="i" class="row" style="padding:5px">
+                                                        <div class="col-md-4">
 
-                                                    <input type="checkbox" formControlName="apliesTo" style="width:20px; height:20px" (change)="changeArg($event.target.checked, arg.value.id, arg.value.questionID)"
-                                                    />
-                                                    <div style="display:inline; vertical-align:super"> {{arg.value.text}} </div>
-                                                </div>
-                                                <div class="col-md-6" *ngIf="arg.value.variable">
+                                                            <input type="checkbox" formControlName="apliesTo" style="width:20px; height:20px" (change)="changeArg($event.target.checked, arg.value.id, arg.value.questionID)"
+                                                            />
+                                                            <div style="display:inline; vertical-align:super"> {{arg.value.text}} </div>
+                                                        </div>
+                                                        <div class="col-md-6" *ngIf="arg.value.variable">
 
-                                                    <span> {{arg.value.maxMistakeText}} </span>
-                                                    <input type="range" min="arg.value.maxMistakeWeight" max="arg.value.minMistakeWeight" value="arg.value.maxMistakeWeight"
-                                                        formControlName="variableVal" (change)="changeSlider($event.target.value, arg.value.id, arg.value.questionID)"
-                                                    />
-                                                    <span class="pull-right"> {{arg.value.minMistakeText}} </span>
+                                                            <span> {{arg.value.maxMistakeText}} </span>
+                                                            <input type="range" min="arg.value.maxMistakeWeight" max="arg.value.minMistakeWeight" value="arg.value.maxMistakeWeight"
+                                                                formControlName="variableVal" (change)="changeSlider($event.target.value, arg.value.id, arg.value.questionID)"
+                                                            />
+                                                            <span class="pull-right"> {{arg.value.minMistakeText}} </span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
+                                            <div class="form-group">
+                                                <label>Adjustment</label>
+                                                <input type="number" value="0" class="form-control" formControlName="adjustment" (blur)="changedAdjustment(question.value.id, $event)"
+                                                />
+                                            </div>
+
+                                        </div>
+
+
+                                        <div class="form-group">
+                                            <label>Comnment</label>
+                                            <input type="text" class="form-control" formControlName="note" (change)="changedNote(question.value.id, $event)" />
                                         </div>
                                     </div>
-
-                                    <div class="form-group">
-                                        <label>Adjustment</label>
-                                        <input type="number" value="0" class="form-control" formControlName="adjustment" (blur)="changedAdjustment(question.value.id, $event)"
-                                        />
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Comnment</label>
-                                        <input type="text" class="form-control" formControlName="note" (change)="changedNote(question.value.id, $event)" />
-                                    </div>
                                 </div>
+
+
+
                             </div>
-
-
-
                         </div>
                     </div>
                 </div>
             </div>
-
-
 
 
         </div>

@@ -43,6 +43,7 @@ import { ExamAttemptEditComponent } from './ExamAttempt/edit/examAttempt-edit.co
 import { MistakeService } from './_services/mistake.service';
 import { ExamAttemptArgumentComponent } from './ExamAttempt/edit/examAttempt-argument.component';
 import { GeneralCritereaImpactService } from './_services/generalCritereaImpact.service';
+import { AnwserService } from './_services/anwser.service';
 
 @NgModule({
     imports: [
@@ -94,7 +95,8 @@ import { GeneralCritereaImpactService } from './_services/generalCritereaImpact.
         ExamAttemptDataTransferService,
         ExamAttemptService,
         MistakeService,
-        GeneralCritereaImpactService
+        GeneralCritereaImpactService,
+        AnwserService
     ],
     bootstrap: [AppComponent]
 })

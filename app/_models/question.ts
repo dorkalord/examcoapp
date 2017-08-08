@@ -7,6 +7,7 @@ export class Question{
     text: string;
     proposedWeight:number;
     finalWeight:number;
+    max:number;
     
     arguments: Argument[];
     tags: Tag[];

@@ -14,6 +14,7 @@ import { Question, Argument } from '../../_models/question';
 import { MistakeService } from '../../_services/mistake.service';
 import { FormGroup, FormControl, FormBuilder, FormArray, Validators } from '@angular/forms';
 import { GeneralCritereaImpactService } from '../../_services/generalCritereaImpact.service';
+import { AnwserService } from '../../_services/anwser.service';
 
 @Component({
     moduleId: module.id,
@@ -40,6 +41,7 @@ export class ExamAttemptEditComponent implements OnInit {
         private mistakeService: MistakeService,
         private generalCritereaImpactService: GeneralCritereaImpactService,
         private examService: ExamService,
+        private anwserService: AnwserService,
         private _fb: FormBuilder,
         private router: Router,
         private examAttemptDataTransferService: ExamAttemptDataTransferService
@@ -64,7 +66,7 @@ export class ExamAttemptEditComponent implements OnInit {
                 this.questionDisplayList.push({
                     id: element.id, examID: element.examID, parentQuestionID: null,
                     seqencialNumber: element.seqencialNumber, text: element.text, proposedWeight: element.proposedWeight, finalWeight: element.finalWeight,
-                    arguments: element.arguments,
+                    arguments: element.arguments, max: element.max,
                     tags: [], childs: []
                 });
             }
@@ -81,30 +83,25 @@ export class ExamAttemptEditComponent implements OnInit {
             });
         });
 
-        this.currentQuestion = this.currentExam.questions[this.currentQuestionIndex];
+        this.currentQuestion = this.questionDisplayList[this.currentQuestionIndex];
         this.myForm = this.initAnwser(this.currentQuestion);
         this.updateStats(this.currentQuestionIndex);
     }
 
     initAnwser(currentQuestion: Question2) {
         let a: Anwser = this.currentAttempt.anwsers.find(x => x.questionID === currentQuestion.id);
-        let comp: string;
+        //let comp: string;
 
         console.log("a", a);
-        if (a.total != null) {
-            if (a.mistakes.length != 0) { comp = "Attempted" }
-            else if (a.total == 100 && a.mistakes.length === 0) { comp = "Correct" }
-            else if (a.mistakes.length === 0) { comp = "Blank" }
-        }
-
         let temp = this._fb.group({
             id: [a.id],
             questionText: [currentQuestion.text],
             questionID: [currentQuestion.id],
-            completion: [comp],
+            completion: [a.completion],
             total: [a.total],
             adjustment: [a.adjustment],
             note: [a.note],
+            max: currentQuestion.max,
 
             arguments: this._fb.array(this.initArguments(currentQuestion.arguments, a)),
             mistakes: this._fb.array(a.mistakes),
@@ -171,15 +168,17 @@ export class ExamAttemptEditComponent implements OnInit {
         this.updateStats(this.currentQuestionIndex);
     }
 
-    changeCompletion() {
-        let val: number = 100;
-        console.log("completion", this.myForm.value.completion);
-        if (this.myForm.value.completion === "Blank") { 
-            
-            val = 0; 
-        }
-        this.myForm.value.total = val;
-        this.updateStats(this.currentQuestionIndex);
+    changeCompletion(id: number, completion: string) {
+        let i: number = this.currentAttempt.anwsers.findIndex(x => x.id === id);
+        let a: Anwser = this.currentAttempt.anwsers[i];
+        this.anwserService.updateCompletion(a, completion).subscribe(data => {
+            //this.updateStats(id);
+            this.currentAttempt.anwsers[i] = data;
+            this.examAttemptService.update(this.currentAttempt).subscribe(data => {
+                this.currentAttempt = data;
+                this.updateStats(i);
+            });
+        });
     }
 
     changeSlider(value: any, argID: number, questionID: number) {
@@ -193,10 +192,15 @@ export class ExamAttemptEditComponent implements OnInit {
         this.currentAttempt.anwsers[i].mistakes[index].adjustedWeight = Math.round(argument.defaultWeight * ((argument.maxMistakeWeight - value + argument.minMistakeWeight) / argument.maxMistakeWeight));
         this.updateStats(i);
         console.log("curr", this.currentAttempt);
-        this.examAttemptService.update(this.currentAttempt).subscribe(data => {
-            this.currentAttempt = data;
-            console.log("after", this.currentAttempt);
+        this.mistakeService.update(this.currentAttempt.anwsers[i].mistakes[index]).subscribe(res => {
+            this.currentAttempt.anwsers[i].mistakes[index] = res;
+
+            this.examAttemptService.update(this.currentAttempt).subscribe(data => {
+                this.currentAttempt = data;
+                console.log("after", this.currentAttempt);
+            });
         });
+
     }
 
     /** Adds or removes the justification
@@ -304,10 +308,10 @@ export class ExamAttemptEditComponent implements OnInit {
 
     updateStats(anwserIndex?: number) {
         //calculate and push to server
-        if (anwserIndex != -1) {
-            this.currentAttempt.anwsers[anwserIndex].total = 100;
+        if (anwserIndex != undefined) {
+            /*this.currentAttempt.anwsers[anwserIndex].total = this.currentAttempt.anwsers[anwserIndex].;
             this.currentAttempt.anwsers[anwserIndex].mistakes.map(x => this.currentAttempt.anwsers[anwserIndex].total -= x.adjustedWeight);
-            this.currentAttempt.anwsers[anwserIndex].total += this.currentAttempt.anwsers[anwserIndex].adjustment;
+            this.currentAttempt.anwsers[anwserIndex].total += this.currentAttempt.anwsers[anwserIndex].adjustment;*/
 
             if (this.myForm.value.id == this.currentAttempt.anwsers[anwserIndex].id) {
                 this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total;
@@ -333,7 +337,7 @@ export class ExamAttemptEditComponent implements OnInit {
 
             this.currentAttempt.generalCritereaImpacts.map(y => {
                 //console.log(y.anwserID, y, element)
-                if (y.examCritereaID == element.examCritereaID && y.anwserID !=null)
+                if (y.examCritereaID == element.examCritereaID && y.anwserID != null)
                     sum += y.weight
             });
 
@@ -349,18 +353,26 @@ export class ExamAttemptEditComponent implements OnInit {
 
         if (this.currentAttempt.anwsers[i].adjustment != +e.target.value) {
             this.currentAttempt.anwsers[i].adjustment = +e.target.value;
-            this.updateStats(i);
-            this.examAttemptService.update(this.currentAttempt).subscribe(data => {
-                this.currentAttempt = data;
+            this.currentAttempt.anwsers[i].total = +e.target.value;
+            
+            this.anwserService.update(this.currentAttempt.anwsers[i]).subscribe(res => {
+                this.currentAttempt.anwsers[i] = res;
+                
+                this.examAttemptService.update(this.currentAttempt).subscribe(data => {
+                    this.currentAttempt = data;
+                    this.updateStats(i);
+
+                });
             });
+
         }
     }
     changedNote(anwserID: number, e: any) {
         console.log("note change");
         let i = this.currentAttempt.anwsers.findIndex(x => x.id === anwserID);
         this.currentAttempt.anwsers[i].note = e.target.value;
-        this.examAttemptService.update(this.currentAttempt).subscribe(data => {
-            this.currentAttempt = data;
+        this.anwserService.update(this.currentAttempt.anwsers[i]).subscribe(data =>{
+            this.currentAttempt.anwsers[i] = data;
         });
     }
 

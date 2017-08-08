@@ -23,6 +23,7 @@ export class Anwser{
     censorshipDate: string;
     note: string;
     adjustment: number;
+    completion: string;
 
     examAttemtID: number;
     questionID: number;

@@ -84,8 +84,8 @@ export class ExamQuestionsComponent implements OnInit {
 
         this.questions.splice(i, 1);
 
-        if (this.questionForm.value.parentQestionID == deletingQestion.id)
-            this.questionForm.value.parentQestionID = null;
+        if (this.questionForm.value.parentQuestionID == deletingQestion.id)
+            this.questionForm.value.parentQuestionID = null;
 
         this.questionForm = this._fb.group({
             id: this.counter,
@@ -93,7 +93,7 @@ export class ExamQuestionsComponent implements OnInit {
 
             seqencialNumber: [this.questions.length + 1, Validators.required],
             text: [this.questionForm.value.text, Validators.required],
-            parentQestionID: this.questionForm.value.parentQestionID,
+            parentQuestionID: [this.questionForm.value.parentQuestionID],
             arguments: this.questionForm.controls.arguments,
             tags: this._fb.array(this.questionForm.value.tags),
         });
@@ -125,6 +125,8 @@ export class ExamQuestionsComponent implements OnInit {
 
     edit(i: number) {
         let q = this.questions[i];
+        let parent = "";
+        if(q.parentQuestionID!= null) parent = q.parentQuestionID.toString();
 
         this.questionForm = this._fb.group({
             id: q.id,
@@ -132,7 +134,7 @@ export class ExamQuestionsComponent implements OnInit {
 
             seqencialNumber: [q.seqencialNumber, Validators.required],
             text: [q.text, Validators.required],
-            parentQestionID: q.parentQuestionID,
+            parentQuestionID: [parent],
             arguments: this._fb.array(q.arguments),
             tags: this._fb.array(q.tags),
         });
