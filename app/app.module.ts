@@ -45,6 +45,7 @@ import { ExamAttemptArgumentComponent } from './ExamAttempt/edit/examAttempt-arg
 import { GeneralCritereaImpactService } from './_services/generalCritereaImpact.service';
 import { AnwserService } from './_services/anwser.service';
 import { UserListComponent } from './user/user-list.component';
+import { ExportService } from './_services/export.service';
 
 @NgModule({
     imports: [
@@ -98,7 +99,8 @@ import { UserListComponent } from './user/user-list.component';
         ExamAttemptService,
         MistakeService,
         GeneralCritereaImpactService,
-        AnwserService
+        AnwserService,
+        ExportService
     ],
     bootstrap: [AppComponent]
 })
