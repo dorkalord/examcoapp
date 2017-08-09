@@ -8,23 +8,45 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { AlertService } from '../_services/alert.service';
 import { Router } from '@angular/router';
 import { Role } from '../_models/role';
+
 declare var jQuery: any;
 @Component({
     moduleId: module.id,
-    templateUrl: 'user-list.component.html'
+    templateUrl: 'user-list.component.html',
+    styles: [`.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}`]
 })
 
 export class UserListComponent implements OnInit {
     currentUser: User;
     users: User[] = [];
     allusers: User[] = [];
+    insertusers: User[] = [];
     loading: boolean = false;
     model: any = {};
     editModel: any = {};
+    fileName: any = {};
 
     @ViewChild('myModal') myModal: ElementRef;
     @ViewChild('editModal') editModal: ElementRef;
-
+    @ViewChild('importModal') importModal: ElementRef;
 
     constructor(private userService: UserService,
         private _fb: FormBuilder,
@@ -56,7 +78,83 @@ export class UserListComponent implements OnInit {
         );
     }
 
-    import() { }
+    open(e: any) {
+        this.fileName = e.target.files[0];
+        console.log("NAME", this.fileName);
+        if (!this.fileName) {
+            return;
+        }
+    }
+
+    import() {
+         console.log("NAME", this.fileName);
+        if (this.fileName != {}) {
+            let text: any;
+            var reader = new FileReader();
+            reader.onload = file => {
+                var contents: any = file.target;
+                text = contents.result;
+                this.extractData(text);
+            };
+            reader.readAsText(this.fileName);
+            jQuery(this.importModal.nativeElement).modal('show');
+        }
+    }
+
+    private extractData(data: any) { // Input csv data to the function
+
+        let csvData = data;
+        let allTextLines = csvData.split(/\r\n|\n/);
+        let headers = allTextLines[0].split(';');
+        this.insertusers = [];
+        for (let i = 1; i < allTextLines.length; i++) {
+            // split content based on comma
+            let data = allTextLines[i].split(';');
+            if (data.length == headers.length) {
+                let tarr: User = new User();
+                tarr.roleID = 4;
+
+                for (let j = 0; j < headers.length; j++) {
+
+                    switch (j) {
+                        case 0:
+                            tarr.name = data[j];
+                            break;
+                        case 1:
+                            tarr.username = data[j];
+                            break;
+                        case 2:
+                            tarr.email = data[j];
+                            break;
+                        case 3:
+                            tarr.password = data[j];
+                            break;
+                        case 4:
+                            tarr.roleID = +data[j];
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+                this.insertusers.push(tarr);
+            }
+        }
+        console.log(this.insertusers); //The data in the form of 2 dimensional array.
+        jQuery(this.importModal.nativeElement).modal('show');
+    }
+
+    saveImport() {
+        this.userService.createMany(this.insertusers).subscribe(
+            data => {
+                this.loadAllUsers()
+                jQuery(this.importModal.nativeElement).modal('hide');
+            },
+            error => {
+                this.alertService.error(error._body);
+                this.loading = false;
+            })
+    }
 
     private loadAllUsers() {
         this.userService.getAll().subscribe(users => { this.users = users; this.allusers = users; });

@@ -20,6 +20,10 @@ export class UserService {
         return this.http.post(this.config.apiUrl + '/users', user, this.jwt());
     }
 
+    createMany(user: User[]) {
+        return this.http.post(this.config.apiUrl + '/users/many', user, this.jwt());
+    }
+
     update(user: User) {
         return this.http.put(this.config.apiUrl + '/users/' + user.id, user, this.jwt());
     }

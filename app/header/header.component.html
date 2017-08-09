@@ -10,6 +10,7 @@
     </div>
     <div *ngIf="show" class="collapse navbar-collapse" id="myNavbar">
       <ul class="nav navbar-nav">
+
         <li class="dropdown">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Course <span class="caret"></span></a>
           <ul class="dropdown-menu">
@@ -30,15 +31,12 @@
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">General <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a [routerLink]="['/criterea']" >Criterea</a></li>
+            <li><a [routerLink]="['/grading']" >Grading</a></li>
           </ul>
         </li>
 
-        <li class="dropdown">
-          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Users <span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            <li><a [routerLink]="['/users']" >List</a></li>
-            <li><a [routerLink]="['/']" >Import</a></li>
-          </ul>
+        <li class="nav  navbar-nav">
+          <a [routerLink]="['/users']" >Users </a>
         </li>
         
       </ul>
