@@ -12,6 +12,10 @@ export class UserService {
         return this.http.get(this.config.apiUrl + '/users', this.jwt()).map((response: Response) => response.json());
     }
 
+    getStudents(examID: number) {
+        return this.http.get(this.config.apiUrl + '/users/students/' + examID, this.jwt()).map((response: Response) => response.json());
+    }
+
     getById(id: number) {
         return this.http.get(this.config.apiUrl + '/users/' + id, this.jwt()).map((response: Response) => response.json());
     }

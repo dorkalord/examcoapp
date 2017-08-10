@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 
 import { User } from '../_models/index';
 import { UserService } from '../_services/index';
@@ -11,6 +11,7 @@ import { ExamAttemptDataTransferService } from '../_services/examAttempt-datatra
 import { Router } from '@angular/router';
 import { Exam, ExamFull } from '../_models/exam';
 
+declare var jQuery: any;
 @Component({
     moduleId: module.id,
     selector: "examAttempt-list",
@@ -23,6 +24,10 @@ export class ExamAttemptListComponent implements OnInit {
     loading: boolean;
     currentExam: ExamFull;
     examAttemptList: ExamAttempt[];
+    users: User[] = [];
+    allusers: User[] = [];
+
+    @ViewChild('selectModal') selectModal: ElementRef;
 
     constructor(private userService: UserService,
         private examAttemptService: ExamAttemptService,
@@ -37,7 +42,7 @@ export class ExamAttemptListComponent implements OnInit {
     }
 
     ngOnInit() {
-
+        this.loadAllUsers();
     }
 
     edit(attemptID: number) {
@@ -47,19 +52,19 @@ export class ExamAttemptListComponent implements OnInit {
             this.examAttemptDataTransferService.currentExam = data;
             this.examAttemptService.getById(attemptID).subscribe(res => {
                 this.examAttemptDataTransferService.currentExamAttempt = res;
-
+                jQuery(this.selectModal.nativeElement).modal('hide');
                 this.router.navigateByUrl('/attempts/' + res.id + '/edit');
             });
         });
     }
 
-    create() {
+    create(userID: number) {
         this.loading = true;
         let attempt: ExamAttempt = new ExamAttempt();
         console.log("attempt", this.examAttemptDataTransferService.currentExam);
         attempt.examID = this.examAttemptDataTransferService.currentExam.id;
         attempt.censorID = this.examAttemptDataTransferService.currentCensor.id;
-        attempt.studentID = 4;
+        attempt.studentID = userID;
 
         console.log("attempt", attempt);
         this.examAttemptService.create(attempt).subscribe(data => {
@@ -73,6 +78,16 @@ export class ExamAttemptListComponent implements OnInit {
         this.examAttemptService.delete(id).subscribe(res =>{
             let i = this.examAttemptList.findIndex(x=>x.id == id);
             this.examAttemptList.splice(i,1);
+            this.loadAllUsers();
         });
+    }
+
+    update(query: string) {
+        this.users = this.allusers;
+        this.users = this.users.filter(x => x.username.toLowerCase().indexOf(query.toLowerCase()) > -1);
+    }
+
+    private loadAllUsers() {
+        this.userService.getStudents(this.currentExam.id).subscribe(users => { this.users = users; this.allusers = users; });
     }
 }

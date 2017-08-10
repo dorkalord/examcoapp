@@ -59,6 +59,7 @@ export class ExamQuestionsComponent implements OnInit {
             examID: examID,
 
             seqencialNumber: [this.questions.length + 1, Validators.required],
+            max: [100, Validators.required],
             text: ['', Validators.required],
             parentQuestionID: "",
             arguments: this._fb.array([]),
@@ -92,6 +93,7 @@ export class ExamQuestionsComponent implements OnInit {
             examID: this.currentExam.id,
 
             seqencialNumber: [this.questions.length + 1, Validators.required],
+            max: [this.questionForm.value.max, Validators.required],
             text: [this.questionForm.value.text, Validators.required],
             parentQuestionID: [this.questionForm.value.parentQuestionID],
             arguments: this.questionForm.controls.arguments,
@@ -133,6 +135,7 @@ export class ExamQuestionsComponent implements OnInit {
             examID: q.examID,
 
             seqencialNumber: [q.seqencialNumber, Validators.required],
+            max: [q.max, Validators.required],
             text: [q.text, Validators.required],
             parentQuestionID: [parent],
             arguments: this._fb.array(q.arguments),

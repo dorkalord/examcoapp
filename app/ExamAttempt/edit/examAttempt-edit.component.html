@@ -48,25 +48,25 @@ Points {{currentAttempt.total}}
                     </div>
                     <div *ngIf="myForm.value.completion === 'Attempted'">
                         <div class="row" style="margin-bottom: 10px; font-weight: bold">
-                            <div class="col-md-4">Justification</div>
-                            <div class="col-md-6">Censor defined severity</div>
+                            <div class="col-md-5">Justification</div>
+                            <div class="col-md-5">Censor defined severity</div>
                         </div>
                         <hr style="margin:0px; border-top: 1px solid #ddd;" />
                         <div formArrayName="arguments">
                             <div *ngFor="let arg of myForm.controls.arguments.controls; let i=index">
                                 <hr style="margin:0px; border-top: 1px solid #ddd;" />
                                 <div [formGroupName]="i" class="row" style="padding:5px">
-                                    <div class="col-md-4">
+                                    <div class="col-md-5">
 
                                         <input type="checkbox" formControlName="apliesTo" style="width:20px; height:20px" (change)="changeArg($event.target.checked, arg.value.id, arg.value.questionID)"
                                         />
                                         <div style="display:inline; vertical-align:super"> {{arg.value.text}} </div>
                                     </div>
-                                    <div class="col-md-6" *ngIf="arg.value.variable">
+                                    <div class="col-md-5" *ngIf="arg.value.variable">
 
                                         <span> {{arg.value.maxMistakeText}} </span>
                                         <input type="range" min="arg.value.maxMistakeWeight" max="arg.value.minMistakeWeight" value="arg.value.maxMistakeWeight"
-                                            formControlName="variableVal" (change)="changeSlider($event.target.value, arg.value.id, arg.value.questionID)"
+                                            formControlName="variableVal" (focusout)="changeSlider($event.target.value, arg.value.id, arg.value.questionID)"
                                         />
                                         <span class="pull-right"> {{arg.value.minMistakeText}} </span>
                                     </div>
@@ -76,8 +76,12 @@ Points {{currentAttempt.total}}
 
                         <div class="form-group">
                             <label>Adjustment</label>
-                            <input type="number" value="0" class="form-control" formControlName="adjustment" (blur)="changedAdjustment(myForm.value.id, $event)"
+                            <input type="number" value="0" class="form-control" formControlName="adjustment"
+                            (focusout)="updateAdjustment(myForm.value.id, $event)" (change)="changedAdjustment(myForm.value.id, $event)"
                             />
+                            <small *ngIf="(myForm.value.adjustment + myForm.value.total)>100" class="text-danger">
+                                Total sum may be a maximum of {{myForm.value.max}}
+                            </small>
                         </div>
                     </div>
 
@@ -217,8 +221,8 @@ Points {{currentAttempt.total}}
                 </div>
                 <div class="col-md-2"> {{crit.calculated}} </div>
                 <div class="col-md-2">
-                    <input type="number" class="form-control" [value]="critereaDisplayList[i].adjustment" max="crit.calculated*-1" min="-100"
-                        (focusout)="adjustImpact($event.target.value,i)" />
+                    <input type="number" class="form-control" [(ngModel)]="critereaDisplayList[i].adjustment" max="crit.calculated*-1" min="-100"
+                        (focusout)="adjustImpact($event.target.value,i)" (change)="impactChnaged($event.target.value, i)" />
                     <small *ngIf="(critereaDisplayList[i].adjustment + crit.calculated)>0" class="text-danger">
                         Total sum may be a maximum of 0
                     </small>

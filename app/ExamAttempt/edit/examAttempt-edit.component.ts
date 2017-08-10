@@ -251,7 +251,7 @@ export class ExamAttemptEditComponent implements OnInit {
 
                 this.generalCritereaImpactService.createMany(criterea).subscribe(data => {
 
-                    this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total -= argument.defaultWeight;
+                    this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total += argument.defaultWeight;
 
                     this.examAttemptService.update(this.currentAttempt).subscribe(data => {
                         this.currentAttempt = data;
@@ -276,7 +276,7 @@ export class ExamAttemptEditComponent implements OnInit {
                     }
                 }
                 this.currentAttempt.anwsers[anwserIndex].mistakes.splice(mi, 1);
-                this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total += argument.defaultWeight;
+                this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total -= argument.defaultWeight;
 
                 this.examAttemptService.update(this.currentAttempt).subscribe(data => {
                     this.currentAttempt = data;
@@ -306,6 +306,13 @@ export class ExamAttemptEditComponent implements OnInit {
             console.log(data);
         });
 
+    }
+
+    impactChnaged(to: number, i: number) {
+
+        if (this.critereaDisplayList[i].calculated + (+to) > 0) { to = this.critereaDisplayList[i].calculated * -1; }
+        console.log("change", to, i);
+        this.critereaDisplayList[i].adjustment = +to;
     }
 
     updateStats(anwserIndex?: number) {
@@ -349,13 +356,13 @@ export class ExamAttemptEditComponent implements OnInit {
         }
     }
 
-    changedAdjustment(anwserID: number, e: any) {
-        console.log("change adjustment", e);
+    updateAdjustment(anwserID: number, e: any) {
+        console.log("update adjustment", e);
         let i = this.currentAttempt.anwsers.findIndex(x => x.id === anwserID);
 
         if (this.currentAttempt.anwsers[i].adjustment != +e.target.value) {
             this.currentAttempt.anwsers[i].adjustment = +e.target.value;
-            this.currentAttempt.anwsers[i].total = +e.target.value;
+            this.currentAttempt.anwsers[i].total += +e.target.value;
 
             this.anwserService.update(this.currentAttempt.anwsers[i]).subscribe(res => {
                 this.currentAttempt.anwsers[i] = res;
@@ -369,6 +376,19 @@ export class ExamAttemptEditComponent implements OnInit {
 
         }
     }
+
+    changedAdjustment(anwserID: number, e: any) {
+        console.log("change adjustment", e);
+        let i = this.currentAttempt.anwsers.findIndex(x => x.id === anwserID);
+        let max = this.currentExam.questions.find(x=>x.id == this.currentAttempt.anwsers[i].questionID).max;
+        if (this.myForm.value.adjustment + this.currentAttempt.anwsers[i].total > max) {
+            
+            this.myForm.value.adjustment = max - this.myForm.value.total;
+            this.myForm.value.total = max;
+        }
+    }
+
+
     changedNote(anwserID: number, e: any) {
         console.log("note change");
         let i = this.currentAttempt.anwsers.findIndex(x => x.id === anwserID);

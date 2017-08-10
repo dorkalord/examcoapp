@@ -27,9 +27,52 @@
         </tbody>
     </table>
     <div class="btn-group" role="group">
-        <button type="button" class="btn btn-primary" (click)="create()">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#selectModal">
             add
         </button>
+    </div>
+</div>
+
+<div class="modal fade modal-xl" id="selectModal" tabindex="-1" role="dialog" aria-labelledby="gridSystemModalLabel" #selectModal>
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="modal-header">
+                    <h2>Select student</h2>
+                    <div class="form-group">
+                        <label>Search</label>
+                        <input #query type="text" class="form-control" (keyup.enter)="update(query.value)" (blur)="update(query.value)">
+                    </div>
+                </div>
+                <form name="form" #f="ngForm" novalidate autocomplete="false">
+                    <div class="modal-body">
+                        <table class="table table-hover table-responsive" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Options</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr *ngFor="let user of users; let i = index; ">
+                                    <td> {{user.username}} </td>
+                                    <td> {{user.email}} </td>
+                                    <td> {{user.id}}
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-primary" (click)="create(user.id)">
+                                                add
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
