@@ -7,7 +7,6 @@
     "lite": "lite-server",
     "tsc": "tsc",
     "tsc:w": "tsc -w",
-
     "clean": "rimraf dist/*",
     "serve": "http-server . -p 5556",
     "build": "npm run clean && tsc",
@@ -24,7 +23,9 @@
     "@angular/platform-browser": "~4.2.0",
     "@angular/platform-browser-dynamic": "~4.2.0",
     "@angular/router": "~4.2.0",
+    "bootstrap": "^3.3.7",
     "core-js": "^2.4.1",
+    "jquery": "^3.2.1",
     "moment": "^2.18.1",
     "rxjs": "^5.2.0",
     "systemjs": "^0.19.47",
