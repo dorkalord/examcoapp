@@ -74,127 +74,40 @@ Points {{currentAttempt.total}}
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label>Adjustment</label>
-                            <input type="number" value="0" class="form-control" formControlName="adjustment"
-                            (focusout)="updateAdjustment(myForm.value.id, $event)" (change)="changedAdjustment(myForm.value.id, $event)"
-                            />
-                            <small *ngIf="(myForm.value.adjustment + myForm.value.total)>100" class="text-danger">
-                                Total sum may be a maximum of {{myForm.value.max}}
+                        <div class="row">
+                            <div class="form-group col-xs-1">
+                                <label>Adjustment</label>
+                                <input type="number" value="0" class="form-control" [(ngModel)]="myForm.value.adjustment" [ngModelOptions]="{standalone: true}"
+                                    (focusout)="updateAdjustment(myForm.value.id, $event)" (change)="changedAdjustment(myForm.value.id, $event)"
+                                    style="min-width: 70px" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <small *ngIf="(myForm.value.adjustment + myForm.value.total) > myForm.value.max" class="text-danger">
+                                Maximum points for the task are {{myForm.value.max}}.
+                            </small>
+                            <small *ngIf="myForm.value.adjustment > 100" class="text-danger">
+                                You can not add more than 100 points to a task.
+                            </small>
+                            <small *ngIf="myForm.value.adjustment < -100" class="text-danger">
+                                You can not deduct more than 100 points from a task.
                             </small>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label>Comnment</label>
-                        <input type="text" class="form-control" formControlName="note" (change)="changedNote(myForm.value.id, $event)" />
+                        <textarea class="form-control" formControlName="note" (change)="changedNote(myForm.value.id, $event)"></textarea>
                     </div>
                 </div>
 
-
-                <div *ngIf="myForm.value.completion === 'Attempted'">
-                    <div class="container panel" *ngFor="let question of myForm.controls.childs.controls; let a=index;">
-
-                        <div [formGroup]="question">
-                            <div class="panel-heading">
-                                <h3>Q{{currentQuestionIndex+1}}.{{a+1}}: {{question.value.questionText}}</h3>
-                                <div class="row">
-                                    <div class="col-xs-2">
-                                        <div class="form-check">
-                                            <label class="form-check-label">
-                                            <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion(question.value.id, $event.target.value)" value="Correct" />
-                                            Correct</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-xs-2">
-                                        <div class="form-check">
-                                            <label class="form-check-label">
-                                            <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion(question.value.id, $event.target.value)" value="Blank" />
-                                            Blank</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-xs-2">
-                                        <div class="form-check">
-                                            <label class="form-check-label">
-                                            <input type="radio" class="form-check-input" formControlName="completion" (change)="changeCompletion(question.value.id, $event.target.value)" value="Attempted"/>
-                                            Attempted</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="panel-body">
-                                <div class="container panel" style="background-color: lavender">
-                                    <div class="panel-heading">
-                                        <h4>Justifications</h4>
-                                    </div>
-                                    <div class="panel-body">
-                                        <div class="form-group">
-                                            <label>Points</label>
-                                            <div class="progress">
-                                                <div class="progress-bar" role="progressbar" aria-valuenow="question.value.max" aria-valuemin="0" aria-valuemax="question.value.max"
-                                                    style="min-width: 1em;" [attr.aria-valuenow]="question.value.total" [style.width]="(question.value.total/question.value.max)*100 + '%'">
-                                                    {{question.value.total}}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div *ngIf="question.value.completion === 'Attempted'">
-                                            <div class="row" style="margin-bottom: 10px; font-weight: bold">
-                                                <div class="col-md-4">Justification</div>
-                                                <div class="col-md-6">Censor defined severity</div>
-                                            </div>
-                                            <hr style="margin:0px; border-top: 1px solid #ddd;" />
-                                            <div formArrayName="arguments">
-                                                <div *ngFor="let arg of question.controls.arguments.controls; let i=index">
-                                                    <hr style="margin:0px; border-top: 1px solid #ddd;" />
-                                                    <div [formGroupName]="i" class="row" style="padding:5px">
-                                                        <div class="col-md-4">
-
-                                                            <input type="checkbox" formControlName="apliesTo" style="width:20px; height:20px" (change)="changeArg($event.target.checked, arg.value.id, arg.value.questionID)"
-                                                            />
-                                                            <div style="display:inline; vertical-align:super"> {{arg.value.text}} </div>
-                                                        </div>
-                                                        <div class="col-md-6" *ngIf="arg.value.variable">
-
-                                                            <span> {{arg.value.maxMistakeText}} </span>
-                                                            <input type="range" min="arg.value.maxMistakeWeight" max="arg.value.minMistakeWeight" value="arg.value.maxMistakeWeight"
-                                                                formControlName="variableVal" (change)="changeSlider($event.target.value, arg.value.id, arg.value.questionID)"
-                                                            />
-                                                            <span class="pull-right"> {{arg.value.minMistakeText}} </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Adjustment</label>
-                                                <input type="number" value="0" class="form-control" formControlName="adjustment" (blur)="changedAdjustment(question.value.id, $event)"
-                                                />
-                                            </div>
-
-                                        </div>
-
-
-                                        <div class="form-group">
-                                            <label>Comnment</label>
-                                            <input type="text" class="form-control" formControlName="note" (change)="changedNote(question.value.id, $event)" />
-                                        </div>
-                                    </div>
-                                </div>
-
-
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
-
 
         </div>
     </form>
     <div class="btn-group pull-right" role="group">
         <button type="button" class="btn btn-primary" (click)="moveTo(currentQuestionIndex-1)" *ngIf="currentQuestionIndex>0">previous</button>
-        <button type="button" class="btn btn-info">jump to</button>
+        <button type="button" class="btn btn-success" (click)="moveTo()">Save</button>
         <button type="button" class="btn btn-primary" (click)="moveTo(currentQuestionIndex+1)" *ngIf="currentQuestionIndex<questionDisplayList.length-1 && myForm.value.completion!=null">next</button>
     </div>
 
@@ -220,11 +133,17 @@ Points {{currentAttempt.total}}
                     <span style="vertical-align:super"> {{crit.name}} </span>
                 </div>
                 <div class="col-md-2"> {{crit.calculated}} </div>
-                <div class="col-md-2">
+                <div class="col-md-2" >
                     <input type="number" class="form-control" [(ngModel)]="critereaDisplayList[i].adjustment" max="crit.calculated*-1" min="-100"
-                        (focusout)="adjustImpact($event.target.value,i)" (change)="impactChnaged($event.target.value, i)" />
+                        (focusout)="adjustImpact($event.target.value,i)" (change)="impactChnaged($event.target.value, i)" style="max-width: 70px"/>
                     <small *ngIf="(critereaDisplayList[i].adjustment + crit.calculated)>0" class="text-danger">
-                        Total sum may be a maximum of 0
+                        The final impact may be a maximum of 0
+                    </small>
+                    <small *ngIf="critereaDisplayList[i].adjustment > 100" class="text-danger">
+                        You can not add more than 100 points to a task.
+                    </small>
+                    <small *ngIf="critereaDisplayList[i].adjustment < -100" class="text-danger">
+                        You can not deduct more than 100 points from a task.
                     </small>
                 </div>
                 <div class="col-md-3"> {{crit.total}} </div>

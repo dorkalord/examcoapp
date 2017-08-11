@@ -87,7 +87,7 @@ export class UserListComponent implements OnInit {
     }
 
     import() {
-         console.log("NAME", this.fileName);
+        console.log("NAME", this.fileName);
         if (this.fileName != {}) {
             let text: any;
             var reader = new FileReader();
@@ -147,13 +147,15 @@ export class UserListComponent implements OnInit {
     saveImport() {
         this.userService.createMany(this.insertusers).subscribe(
             data => {
-                this.loadAllUsers()
+                this.loadAllUsers();
                 jQuery(this.importModal.nativeElement).modal('hide');
+                this.loading = false;
             },
             error => {
-                this.alertService.error(error._body);
+                jQuery(this.importModal.nativeElement).modal('hide');
                 this.loading = false;
-            })
+                this.alertService.error(error._body);
+            });
     }
 
     private loadAllUsers() {
@@ -178,8 +180,8 @@ export class UserListComponent implements OnInit {
                 jQuery(this.editModal.nativeElement).modal('hide');
             },
             error => {
-                this.alertService.error(error._body);
                 this.loading = false;
+                this.alertService.error(error._body);
             }
         );
     }

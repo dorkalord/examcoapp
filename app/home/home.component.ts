@@ -17,18 +17,8 @@ export class HomeComponent implements OnInit {
 
     constructor(private userService: UserService, private _fb: FormBuilder, ) {
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
-
     }
-
+    
     ngOnInit() {
-        this.loadAllUsers();
-    }
-
-    deleteUser(id: number) {
-        this.userService.delete(id).subscribe(() => { this.loadAllUsers() });
-    }
-
-    private loadAllUsers() {
-        this.userService.getAll().subscribe(users => { this.users = users; });
     }
 }

@@ -310,6 +310,8 @@ export class ExamAttemptEditComponent implements OnInit {
     impactChnaged(to: number, i: number) {
 
         if (this.critereaDisplayList[i].calculated + (+to) > 0) { to = this.critereaDisplayList[i].calculated * -1; }
+        else if (this.critereaDisplayList[i].adjustment > 100) { this.critereaDisplayList[i].adjustment = 100; }
+        else if (this.critereaDisplayList[i].adjustment < -100) { this.critereaDisplayList[i].adjustment = -100; }
         console.log("change", to, i);
         this.critereaDisplayList[i].adjustment = +to;
     }
@@ -385,6 +387,8 @@ export class ExamAttemptEditComponent implements OnInit {
             this.myForm.value.adjustment = max - this.myForm.value.total;
             this.myForm.value.total = max;
         }
+        else if (this.myForm.value.adjustment > 100) { this.myForm.value.adjustment = 100; }
+        else if (this.myForm.value.adjustment < -100) { this.myForm.value.adjustment = -100; }
     }
 
 
