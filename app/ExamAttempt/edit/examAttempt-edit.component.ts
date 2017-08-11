@@ -251,10 +251,9 @@ export class ExamAttemptEditComponent implements OnInit {
 
                 this.generalCritereaImpactService.createMany(criterea).subscribe(data => {
 
-                    this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total += argument.defaultWeight;
-
                     this.examAttemptService.update(this.currentAttempt).subscribe(data => {
                         this.currentAttempt = data;
+                        this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total;
                         console.log("data attempt", data);
                         this.loading = false;
                         this.updateStats(qindex);
@@ -276,10 +275,10 @@ export class ExamAttemptEditComponent implements OnInit {
                     }
                 }
                 this.currentAttempt.anwsers[anwserIndex].mistakes.splice(mi, 1);
-                this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total -= argument.defaultWeight;
 
                 this.examAttemptService.update(this.currentAttempt).subscribe(data => {
                     this.currentAttempt = data;
+                    this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total;
                     this.updateStats(qindex);
                 });
                 //remove general criterea
@@ -380,9 +379,9 @@ export class ExamAttemptEditComponent implements OnInit {
     changedAdjustment(anwserID: number, e: any) {
         console.log("change adjustment", e);
         let i = this.currentAttempt.anwsers.findIndex(x => x.id === anwserID);
-        let max = this.currentExam.questions.find(x=>x.id == this.currentAttempt.anwsers[i].questionID).max;
+        let max = this.currentExam.questions.find(x => x.id == this.currentAttempt.anwsers[i].questionID).max;
         if (this.myForm.value.adjustment + this.currentAttempt.anwsers[i].total > max) {
-            
+
             this.myForm.value.adjustment = max - this.myForm.value.total;
             this.myForm.value.total = max;
         }
