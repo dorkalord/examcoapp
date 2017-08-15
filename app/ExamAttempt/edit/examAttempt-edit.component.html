@@ -148,7 +148,7 @@ Points {{currentAttempt.total}}
         <button type="button" class="btn btn-primary" (click)="moveTo(currentQuestionIndex-1)" *ngIf="currentQuestionIndex>0">previous</button>
 
         <button type="button" class="btn btn-primary" (click)="moveTo(currentQuestionIndex+1)" *ngIf="currentQuestionIndex<questionDisplayList.length-1 && myForm.value.completion!=null">next</button>
-        <button type="button" class="btn btn-success" (click)="save(currentQuestionIndex)">Save</button>
+        <!--<button type="button" class="btn btn-success" (click)="save(currentQuestionIndex)">Save</button>-->
     </div>
 
 </div>
