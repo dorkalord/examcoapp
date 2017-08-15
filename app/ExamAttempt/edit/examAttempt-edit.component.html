@@ -41,7 +41,7 @@ Points {{currentAttempt.total}}
                         <label>Points</label>
                         <div class="progress">
                             <div class="progress-bar" role="progressbar" aria-valuenow="myForm.value.max" aria-valuemin="0" aria-valuemax="myForm.value.max"
-                                style="min-width: 1em;" [attr.aria-valuenow]="myForm.value.total" [style.width]="(myForm.value.total/myForm.value.max)*100 + '%'">
+                                style="min-width: 2em;" [attr.aria-valuenow]="myForm.value.total" [style.width]="(myForm.value.total/myForm.value.max)*100 + '%'">
                                 {{myForm.value.total}}
                             </div>
                         </div>
@@ -62,11 +62,11 @@ Points {{currentAttempt.total}}
                                         />
                                         <div style="display:inline; vertical-align:super"> {{arg.value.text}} </div>
                                     </div>
-                                    <div class="col-md-5" *ngIf="arg.value.variable">
+                                    <div class="col-md-5" *ngIf="arg.value.apliesTo && arg.value.variable">
 
                                         <span> {{arg.value.maxMistakeText}} </span>
-                                        <input type="range" min="arg.value.maxMistakeWeight" max="arg.value.minMistakeWeight" value="arg.value.maxMistakeWeight"
-                                            formControlName="variableVal" (focusout)="changeSlider($event.target.value, arg.value.id, arg.value.questionID)"
+                                        <input type="range" min="{{arg.value.minMistakeWeight}}" max="{{arg.value.maxMistakeWeight}}" formControlName="variableVal"
+                                            (change)="changeSlider($event.target.value, arg.value.id, arg.value.questionID)"
                                         />
                                         <span class="pull-right"> {{arg.value.minMistakeText}} </span>
                                     </div>
@@ -77,13 +77,12 @@ Points {{currentAttempt.total}}
                         <div class="row">
                             <div class="form-group col-xs-1">
                                 <label>Adjustment</label>
-                                <input type="number" value="0" class="form-control" [(ngModel)]="myForm.value.adjustment" [ngModelOptions]="{standalone: true}"
-                                    (focusout)="updateAdjustment(myForm.value.id, $event)" (change)="changedAdjustment(myForm.value.id, $event)"
+                                <input type="number" value="0" class="form-control" formControlName="adjustment" (change)="changedAdjustment(myForm.value.id, $event)"
                                     style="min-width: 70px" />
                             </div>
                         </div>
                         <div class="row">
-                            <small *ngIf="(myForm.value.adjustment + myForm.value.total) > myForm.value.max" class="text-danger">
+                            <small *ngIf="(myForm.value.adjustment + myForm.value.total) > myForm.value.max" class="text-info">
                                 Maximum points for the task are {{myForm.value.max}}.
                             </small>
                             <small *ngIf="myForm.value.adjustment > 100" class="text-danger">
@@ -92,6 +91,46 @@ Points {{currentAttempt.total}}
                             <small *ngIf="myForm.value.adjustment < -100" class="text-danger">
                                 You can not deduct more than 100 points from a task.
                             </small>
+                        </div>
+
+
+                        <div class="container panel">
+                            <div class="panel-heading">
+                                <h4>General criterea</h4>
+                            </div>
+                            <div class="panel-body">
+                                <div class="row" style="margin-bottom: 10px; font-weight: bold">
+                                    <div class="col-md-4">Criterea</div>
+                                    <div class="col-md-2">Impact from mistakes</div>
+                                    <div class="col-md-2">Adjustment</div>
+                                    <div class="col-md-3">Final impact</div>
+                                </div>
+                                <hr style="margin:0px; border-top: 1px solid #ddd;" />
+
+                                <div *ngFor="let crit of critereaDisplayList; let i=index">
+                                    <hr style="margin:0px; border-top: 1px solid #ddd;" />
+                                    <div class="row" style="padding:5px">
+                                        <div class="col-md-4">
+                                            <span style="vertical-align:super"> {{crit.name}} </span>
+                                        </div>
+                                        <div class="col-md-2"> {{crit.calculated}} </div>
+                                        <div class="col-md-2">
+                                            <input type="number" class="form-control" [(ngModel)]="critereaDisplayList[i].adjustment" [ngModelOptions]="{standalone: true}"
+                                                (change)="impactChnaged($event.target.value, i)" style="max-width: 70px" />
+                                            <small *ngIf="(critereaDisplayList[i].adjustment + crit.calculated)>0" class="text-danger">
+                                            The final impact may be a maximum of 0
+                                        </small>
+                                            <small *ngIf="critereaDisplayList[i].adjustment > 100" class="text-danger">
+                                            You can not add more than 100 points to a task.
+                                        </small>
+                                            <small *ngIf="critereaDisplayList[i].adjustment < -100" class="text-danger">
+                                            You can not deduct more than 100 points from a task.
+                                        </small>
+                                        </div>
+                                        <div class="col-md-3"> {{crit.total}} </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -107,52 +146,17 @@ Points {{currentAttempt.total}}
     </form>
     <div class="btn-group pull-right" role="group">
         <button type="button" class="btn btn-primary" (click)="moveTo(currentQuestionIndex-1)" *ngIf="currentQuestionIndex>0">previous</button>
-        <button type="button" class="btn btn-success" (click)="moveTo()">Save</button>
+
         <button type="button" class="btn btn-primary" (click)="moveTo(currentQuestionIndex+1)" *ngIf="currentQuestionIndex<questionDisplayList.length-1 && myForm.value.completion!=null">next</button>
+        <button type="button" class="btn btn-success" (click)="save(currentQuestionIndex)">Save</button>
     </div>
 
 </div>
 
-<div class="container panel">
-    <div class="panel-heading">
-        <h4>General criterea</h4>
-    </div>
-    <div class="panel-body">
-        <div class="row" style="margin-bottom: 10px; font-weight: bold">
-            <div class="col-md-4">Criterea</div>
-            <div class="col-md-2">Impact from mistakes</div>
-            <div class="col-md-2">Adjustment</div>
-            <div class="col-md-3">Final impact</div>
-        </div>
-        <hr style="margin:0px; border-top: 1px solid #ddd;" />
 
-        <div *ngFor="let crit of critereaDisplayList; let i=index">
-            <hr style="margin:0px; border-top: 1px solid #ddd;" />
-            <div class="row" style="padding:5px">
-                <div class="col-md-4">
-                    <span style="vertical-align:super"> {{crit.name}} </span>
-                </div>
-                <div class="col-md-2"> {{crit.calculated}} </div>
-                <div class="col-md-2" >
-                    <input type="number" class="form-control" [(ngModel)]="critereaDisplayList[i].adjustment" max="crit.calculated*-1" min="-100"
-                        (focusout)="adjustImpact($event.target.value,i)" (change)="impactChnaged($event.target.value, i)" style="max-width: 70px"/>
-                    <small *ngIf="(critereaDisplayList[i].adjustment + crit.calculated)>0" class="text-danger">
-                        The final impact may be a maximum of 0
-                    </small>
-                    <small *ngIf="critereaDisplayList[i].adjustment > 100" class="text-danger">
-                        You can not add more than 100 points to a task.
-                    </small>
-                    <small *ngIf="critereaDisplayList[i].adjustment < -100" class="text-danger">
-                        You can not deduct more than 100 points from a task.
-                    </small>
-                </div>
-                <div class="col-md-3"> {{crit.total}} </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <div class="margin-20">
-    <pre>form {{myForm.value | json }} </pre>
+
     <pre>currentAttempt {{currentAttempt | json}} </pre>
+    <pre>form {{currentAttempt.generalCritereaImpacts | json }} </pre>
 </div>

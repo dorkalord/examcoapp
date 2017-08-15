@@ -29,6 +29,10 @@ export class GeneralCritereaImpactService {
         return this.http.post(this.config.apiUrl + '/generalCritereaImpact/many', generalCritereaImpacts, this.jwt()).map((response: Response) => response.json());;
     }
 
+    updateMany(generalCritereaImpacts: GeneralCritereaImpact[]) {
+        return this.http.put(this.config.apiUrl + '/generalCritereaImpact/many', generalCritereaImpacts, this.jwt()).map((response: Response) => response.json());;
+    }
+
     update(generalCritereaImpact: GeneralCritereaImpact) {
         return this.http.put(this.config.apiUrl + '/generalCritereaImpact/' + generalCritereaImpact.id, generalCritereaImpact, this.jwt()).map((response: Response) => response.json());;
     }

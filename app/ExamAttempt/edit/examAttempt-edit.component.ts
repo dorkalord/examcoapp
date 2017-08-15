@@ -15,6 +15,8 @@ import { MistakeService } from '../../_services/mistake.service';
 import { FormGroup, FormControl, FormBuilder, FormArray, Validators } from '@angular/forms';
 import { GeneralCritereaImpactService } from '../../_services/generalCritereaImpact.service';
 import { AnwserService } from '../../_services/anwser.service';
+import { GeneralCriterea } from '../../_models/criterea';
+import { AlertComponent } from '../../_directives/alert.component';
 
 @Component({
     moduleId: module.id,
@@ -57,29 +59,14 @@ export class ExamAttemptEditComponent implements OnInit {
         this.currentAttempt = this.examAttemptDataTransferService.currentExamAttempt;
         console.log("big exam", this.currentExam);/**/
 
-        this.currentExam.course.code;
-        this.currentAttempt.studentID
-
         //taking care of questions and their grouping
         this.currentExam.questions.forEach(element => {
-            if (element.parentQuestionID == null) {
-                this.questionDisplayList.push({
-                    id: element.id, examID: element.examID, parentQuestionID: null,
-                    seqencialNumber: element.seqencialNumber, text: element.text, proposedWeight: element.proposedWeight, finalWeight: element.finalWeight,
-                    arguments: element.arguments, max: element.max,
-                    tags: [], childs: []
-                });
-            }
-            else {
-                i = this.questionDisplayList.findIndex(x => x.id === element.parentQuestionID);
-                this.questionDisplayList[i].childs.push(element);
-            }
-        });
 
-        this.currentExam.examCriterea.forEach(ec => {
-            let calc: GeneralCritereaImpact = this.currentAttempt.generalCritereaImpacts.find(x => x.examCritereaID === ec.id && x.anwserID == null);
-            this.critereaDisplayList.push({
-                name: ec.name, examCritereaID: ec.id, adjustment: calc.weight, calculated: 0, total: 0
+            this.questionDisplayList.push({
+                id: element.id, examID: element.examID, parentQuestionID: null,
+                seqencialNumber: element.seqencialNumber, text: element.text, proposedWeight: element.proposedWeight, finalWeight: element.finalWeight,
+                arguments: element.arguments, max: element.max,
+                tags: [], childs: []
             });
         });
 
@@ -88,11 +75,29 @@ export class ExamAttemptEditComponent implements OnInit {
         this.updateStats(this.currentQuestionIndex);
     }
 
+    ngOnInit() {
+    }
+
     initAnwser(currentQuestion: Question2) {
         let a: Anwser = this.currentAttempt.anwsers.find(x => x.questionID === currentQuestion.id);
-        //let comp: string;
+        this.critereaDisplayList = [];
+        //general critereas of anwser
+        this.currentExam.examCriterea.forEach(ec => {
+            //general criterea adjustments of anwser
+            let adj: GeneralCritereaImpact = this.currentAttempt.generalCritereaImpacts.find(x => x.examCritereaID === ec.id
+                && x.anwserID == a.id && x.mistakeID == null);
 
-        console.log("a", a);
+            //general critereas of anwser
+            let calc: number = 0;
+            
+            this.currentAttempt.generalCritereaImpacts.filter(x => x.examCritereaID === ec.id
+                && x.anwserID == a.id && x.mistakeID != null).map(z => calc += z.weight);
+
+            this.critereaDisplayList.push({
+                name: ec.name, examCritereaID: ec.id, adjustment: adj.weight, calculated: calc, total: (adj.weight + calc)
+            });
+        });
+
         let temp = this._fb.group({
             id: [a.id],
             questionText: [currentQuestion.text],
@@ -104,17 +109,11 @@ export class ExamAttemptEditComponent implements OnInit {
             max: currentQuestion.max,
 
             arguments: this._fb.array(this.initArguments(currentQuestion.arguments, a)),
-            mistakes: this._fb.array(a.mistakes),
+            mistakes: this._fb.array(a.mistakes)
 
-            childs: this._fb.array([])
         });
 
-        if (currentQuestion.childs != null) {
-            currentQuestion.childs.forEach(element => {
-                (<FormArray>temp.controls.childs).push(this.initAnwser(element));
-            });
-        }
-        console.log("temp", temp);
+        console.log("current anwser", temp);
         return temp;
     }
 
@@ -151,34 +150,114 @@ export class ExamAttemptEditComponent implements OnInit {
                 apliesTo: [b]
             });
 
-
             arr.push(temp);
         });
         return arr;
     }
 
-    ngOnInit() {
+    moveTo(i: number) {
+
+        this.anwserService.update(this.currentAttempt.anwsers[this.currentQuestionIndex]).subscribe(
+            data => {
+                this.generalCritereaImpactService.updateMany(this.currentAttempt.generalCritereaImpacts.filter(x => x.anwserID == this.currentAttempt.anwsers[this.currentQuestionIndex].id && x.mistakeID == null)).subscribe(
+                    data => {
+                        this.currentQuestionIndex = i;
+                        this.currentQuestion = this.questionDisplayList[this.currentQuestionIndex];
+                        this.critereaDisplayList = [];
+                        this.myForm = this.initAnwser(this.currentQuestion);
+                        this.updateStats(this.currentQuestionIndex);
+                    },
+                    err => { alert("Something failed" + err) }
+                )
+            },
+            error => { alert("Something went wrong\n" + error) }
+        );
+
 
     }
 
-    moveTo(i: number) {
-        this.currentQuestionIndex = i;
-        this.currentQuestion = this.questionDisplayList[this.currentQuestionIndex];
-        this.myForm = this.initAnwser(this.currentQuestion);
-        this.updateStats(this.currentQuestionIndex);
+    save(i: number) {
+        this.anwserService.update(this.currentAttempt.anwsers[i]).subscribe(
+            data => {
+                this.generalCritereaImpactService.updateMany(this.currentAttempt.generalCritereaImpacts.filter(x => x.anwserID == this.currentAttempt.anwsers[i].id && x.mistakeID == null)).subscribe(
+                    data => { alert("Changes saved"); },
+                    err => { alert("Something failed" + err.body) }
+                )
+            },
+            error => { alert("Something went wrong\n" + error.body) }
+        );
+    }
+
+    updateStats(anwserIndex?: number) {
+        //calculate
+        if (anwserIndex != undefined) {
+            this.currentAttempt.anwsers[anwserIndex].total = this.currentExam.questions[anwserIndex].max;
+            this.currentAttempt.anwsers[anwserIndex].mistakes.map(x => this.currentAttempt.anwsers[anwserIndex].total += x.adjustedWeight);
+            this.currentAttempt.anwsers[anwserIndex].total += this.currentAttempt.anwsers[anwserIndex].adjustment;
+
+            this.myForm.controls.total.setValue(this.currentAttempt.anwsers[anwserIndex].total);
+        }
+
+        this.currentAttempt.total = 0;
+        this.currentAttempt.anwsers.map(x => this.currentAttempt.total += x.total);
+
+        let sum: number = 0, index: number = 0;
+
+        //calculate the criteras
+        for (var i = 0; i < this.critereaDisplayList.length; i++) {
+            sum = 0;
+            var element = this.critereaDisplayList[i];
+
+            this.currentAttempt.generalCritereaImpacts.map(y => {
+                //console.log(y.anwserID, y, element)
+                if (y.examCritereaID == element.examCritereaID && y.mistakeID != null && y.anwserID ==  this.currentAttempt.anwsers[anwserIndex].id)
+                    sum += y.weight
+            });
+
+            // console.log("sum", sum, "element", element);
+            this.critereaDisplayList[i].calculated = sum;
+            this.critereaDisplayList[i].total = this.critereaDisplayList[i].calculated + this.critereaDisplayList[i].adjustment;
+        }
+    }
+
+    removeGeneralCritereaImpacts(id: number) {
+        for (var i = this.currentAttempt.generalCritereaImpacts.length - 1; i >= 0; i--) {
+            if (this.currentAttempt.generalCritereaImpacts[i].anwserID === id && this.currentAttempt.generalCritereaImpacts[i].mistakeID != null) {
+                this.currentAttempt.generalCritereaImpacts.splice(i, 1);
+            }
+            else if (this.currentAttempt.generalCritereaImpacts[i].anwserID === id) {
+                this.currentAttempt.generalCritereaImpacts[i].weight = 0;
+            }
+        }
     }
 
     changeCompletion(id: number, completion: string) {
         let i: number = this.currentAttempt.anwsers.findIndex(x => x.id === id);
         let a: Anwser = this.currentAttempt.anwsers[i];
-        this.anwserService.updateCompletion(a, completion).subscribe(data => {
-            //this.updateStats(id);
-            this.currentAttempt.anwsers[i] = data;
-            this.examAttemptService.update(this.currentAttempt).subscribe(data => {
-                this.currentAttempt = data;
-                this.updateStats(i);
-            });
-        });
+
+        switch (completion) {
+            case "Attempted":
+                this.currentAttempt.anwsers[i].total = this.myForm.value.max;
+                break;
+
+            case "Correct":
+                this.currentAttempt.anwsers[i].total = this.myForm.value.max;
+                a.mistakes = [];
+                this.removeGeneralCritereaImpacts(a.id);
+                break;
+
+            case "Blank":
+                this.currentAttempt.anwsers[i].total = 0;
+                a.mistakes = [];
+                this.removeGeneralCritereaImpacts(a.id);
+                break;
+
+            default:
+                break;
+        }
+
+        this.currentAttempt.anwsers[i].completion = completion;
+        this.updateStats();
     }
 
     changeSlider(value: any, argID: number, questionID: number) {
@@ -188,19 +267,10 @@ export class ExamAttemptEditComponent implements OnInit {
         let i = this.currentAttempt.anwsers.findIndex(x => x.questionID === questionID);
         let index = this.currentAttempt.anwsers[i].mistakes.findIndex(x => x.argumentID === argID);
 
-        console.log("argument.maxMistakeWeight", argument.maxMistakeWeight, "argument.minMistakeWeight", argument.minMistakeWeight);
         this.currentAttempt.anwsers[i].mistakes[index].adjustedWeight = Math.round(argument.defaultWeight * ((argument.maxMistakeWeight - value + argument.minMistakeWeight) / argument.maxMistakeWeight));
+        console.log("argument.maxMistakeWeight", argument.maxMistakeWeight, "argument.minMistakeWeight", argument.minMistakeWeight, "adj", this.currentAttempt.anwsers[i].mistakes[index].adjustedWeight);
+
         this.updateStats(i);
-        console.log("curr", this.currentAttempt);
-        this.mistakeService.update(this.currentAttempt.anwsers[i].mistakes[index]).subscribe(res => {
-            this.currentAttempt.anwsers[i].mistakes[index] = res;
-
-            this.examAttemptService.update(this.currentAttempt).subscribe(data => {
-                this.currentAttempt = data;
-                console.log("after", this.currentAttempt);
-            });
-        });
-
     }
 
     /** Adds or removes the justification
@@ -219,178 +289,83 @@ export class ExamAttemptEditComponent implements OnInit {
         //new mistake
         if (value === true) {
             //create mistake
-            let weight = argument.defaultWeight / (1 + +argument.variable);
+            let weight: number = argument.defaultWeight / (1 + +argument.variable);
             let newMistatake: Mistake = {
-                id: null,
+                id: argID * -1,
                 adjustedWeight: weight,
 
                 argumentID: argID,
                 anwserID: this.currentAttempt.anwsers[anwserIndex].id
             };
+            this.currentAttempt.anwsers[anwserIndex].mistakes.push(newMistatake);
 
-            //add to the server
-            this.mistakeService.create(newMistatake).subscribe(data => {
-                newMistatake.id = data.id;
-                this.currentAttempt.anwsers[anwserIndex].mistakes.push(newMistatake);
-                (<FormArray>this.myForm.controls['mistakes']).push(this._fb.group(data));
+            let gc: any;
+            argument.argumentCritereas.forEach(ac => {
+                gc = {
+                    anwserID: this.currentAttempt.anwsers[anwserIndex].id,
+                    examAttemptID: this.currentAttempt.id,
+                    examCritereaID: ac.examCritereaID,
+                    mistakeID: argID * -1,
+                    weight: ac.severity
+                };
+                this.currentAttempt.generalCritereaImpacts.push(gc);
+            });/**/
 
-                //add all of the criterea impacts
-                let criterea: GeneralCritereaImpact[] = [];
-                let gc: any;
-                argument.argumentCritereas.forEach(ac => {
-                    gc = {
-                        anwserID: this.currentAttempt.anwsers[anwserIndex].id,
-                        examAttemptID: this.currentAttempt.id,
-                        examCritereaID: ac.examCritereaID,
-                        mistakeID: data.id,
-                        weight: ac.severity
-                    };
-                    console.log(JSON.stringify(gc));
-                    criterea.push(gc);
-                });/**/
-
-                this.generalCritereaImpactService.createMany(criterea).subscribe(data => {
-
-                    this.examAttemptService.update(this.currentAttempt).subscribe(data => {
-                        this.currentAttempt = data;
-                        this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total;
-                        console.log("data attempt", data);
-                        this.loading = false;
-                        this.updateStats(qindex);
-                    });/**/
-                });
-
-            });
+            this.updateStats(qindex);
         }
         //remove mistake
         else {
 
             let m = this.currentAttempt.anwsers[anwserIndex].mistakes.find(x => x.argumentID === argID);
-            this.mistakeService.delete(m.id).subscribe(res => {
-
-                let mi = this.currentAttempt.anwsers[anwserIndex].mistakes.findIndex(x => x.argumentID === argID);
-                for (var i = this.currentAttempt.generalCritereaImpacts.length - 1; i >= 0; i--) {
-                    if (this.currentAttempt.generalCritereaImpacts[i].anwserID === m.id) {
-                        this.currentAttempt.generalCritereaImpacts.splice(i, 1);
-                    }
+            let mi = this.currentAttempt.anwsers[anwserIndex].mistakes.findIndex(x => x.argumentID === argID);
+            for (var i = this.currentAttempt.generalCritereaImpacts.length - 1; i >= 0; i--) {
+                if (this.currentAttempt.generalCritereaImpacts[i].mistakeID === m.id) {
+                    this.currentAttempt.generalCritereaImpacts.splice(i, 1);
                 }
-                this.currentAttempt.anwsers[anwserIndex].mistakes.splice(mi, 1);
+            }
+            this.currentAttempt.anwsers[anwserIndex].mistakes.splice(mi, 1);
 
-                this.examAttemptService.update(this.currentAttempt).subscribe(data => {
-                    this.currentAttempt = data;
-                    this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total;
-                    this.updateStats(qindex);
-                });
-                //remove general criterea
-            });
+            this.updateStats(qindex);
         }
 
         console.log("current", this.currentAttempt);
 
     }
 
-    /**Adjusts a justification to a certian level
-     * @param to 
-     * @param i 
-     */
-    adjustImpact(to: number, i: number) {
-        console.log(to, i);
+    impactChnaged(to: number, i: number) {
+        console.log("change", to, i);
         if (this.critereaDisplayList[i].calculated + (+to) > 0) { to = this.critereaDisplayList[i].calculated * -1; }
+        else if (+to > 100) { to = 100; }
+        else if (+to < -100) { to = -100; }
+
         this.critereaDisplayList[i].adjustment = +to;
+
         this.critereaDisplayList[i].total = this.critereaDisplayList[i].calculated + this.critereaDisplayList[i].adjustment;
 
-        let index = this.currentAttempt.generalCritereaImpacts.findIndex(g => g.anwserID == null && g.examCritereaID == this.critereaDisplayList[i].examCritereaID)
+        let index = this.currentAttempt.generalCritereaImpacts.findIndex(g => g.mistakeID == null
+            && g.examCritereaID == this.critereaDisplayList[i].examCritereaID && g.anwserID == this.myForm.value.id)
         this.currentAttempt.generalCritereaImpacts[index].weight = +to;
-        this.generalCritereaImpactService.update(this.currentAttempt.generalCritereaImpacts[index]).subscribe(data => {
-            console.log(data);
-        });
-
-    }
-
-    impactChnaged(to: number, i: number) {
-
-        if (this.critereaDisplayList[i].calculated + (+to) > 0) { to = this.critereaDisplayList[i].calculated * -1; }
-        else if (this.critereaDisplayList[i].adjustment > 100) { this.critereaDisplayList[i].adjustment = 100; }
-        else if (this.critereaDisplayList[i].adjustment < -100) { this.critereaDisplayList[i].adjustment = -100; }
-        console.log("change", to, i);
-        this.critereaDisplayList[i].adjustment = +to;
-    }
-
-    updateStats(anwserIndex?: number) {
-        //calculate and push to server
-        if (anwserIndex != undefined) {
-            /*this.currentAttempt.anwsers[anwserIndex].total = this.currentAttempt.anwsers[anwserIndex].;
-            this.currentAttempt.anwsers[anwserIndex].mistakes.map(x => this.currentAttempt.anwsers[anwserIndex].total -= x.adjustedWeight);
-            this.currentAttempt.anwsers[anwserIndex].total += this.currentAttempt.anwsers[anwserIndex].adjustment;*/
-
-            if (this.myForm.value.id == this.currentAttempt.anwsers[anwserIndex].id) {
-                this.myForm.value.total = this.currentAttempt.anwsers[anwserIndex].total;
-            }
-            else if (this.myForm.value.childs != null) {
-                for (var y = 0; y < this.myForm.value.childs.length; y++) {
-                    if (this.myForm.value.childs[y].id == this.currentAttempt.anwsers[anwserIndex].id) {
-                        this.myForm.value.childs[y].total = this.currentAttempt.anwsers[anwserIndex].total;
-                    }
-                }
-            }
-        }
-
-        this.currentAttempt.total = 0;
-        this.currentAttempt.anwsers.map(x => this.currentAttempt.total += x.total);
-
-        let sum: number = 0, index: number = 0;
-
-        //calculate the criteras
-        for (var i = 0; i < this.critereaDisplayList.length; i++) {
-            sum = 0;
-            var element = this.critereaDisplayList[i];
-
-            this.currentAttempt.generalCritereaImpacts.map(y => {
-                //console.log(y.anwserID, y, element)
-                if (y.examCritereaID == element.examCritereaID && y.anwserID != null)
-                    sum += y.weight
-            });
-
-            // console.log("sum", sum, "element", element);
-            this.critereaDisplayList[i].calculated = sum;
-            this.critereaDisplayList[i].total = this.critereaDisplayList[i].calculated + this.critereaDisplayList[i].adjustment;
-        }
-    }
-
-    updateAdjustment(anwserID: number, e: any) {
-        console.log("update adjustment", e);
-        let i = this.currentAttempt.anwsers.findIndex(x => x.id === anwserID);
-
-        if (this.currentAttempt.anwsers[i].adjustment != +e.target.value) {
-            this.currentAttempt.anwsers[i].adjustment = +e.target.value;
-            this.currentAttempt.anwsers[i].total += +e.target.value;
-
-            this.anwserService.update(this.currentAttempt.anwsers[i]).subscribe(res => {
-                this.currentAttempt.anwsers[i] = res;
-
-                this.examAttemptService.update(this.currentAttempt).subscribe(data => {
-                    this.currentAttempt = data;
-                    this.updateStats(i);
-
-                });
-            });
-
-        }
     }
 
     changedAdjustment(anwserID: number, e: any) {
         console.log("change adjustment", e);
         let i = this.currentAttempt.anwsers.findIndex(x => x.id === anwserID);
         let max = this.currentExam.questions.find(x => x.id == this.currentAttempt.anwsers[i].questionID).max;
-        if (this.myForm.value.adjustment + this.currentAttempt.anwsers[i].total > max) {
 
-            this.myForm.value.adjustment = max - this.myForm.value.total;
-            this.myForm.value.total = max;
+        this.currentAttempt.anwsers[i].total = max;
+        this.currentAttempt.anwsers[i].mistakes.map(x => this.currentAttempt.anwsers[i].total += x.adjustedWeight);
+        if (+e.target.value + this.currentAttempt.anwsers[i].total > max) {
+            this.currentAttempt.anwsers[i].adjustment = max - this.currentAttempt.anwsers[i].total;
+            this.myForm.controls.adjustment.setValue(this.currentAttempt.anwsers[i].adjustment);
         }
-        else if (this.myForm.value.adjustment > 100) { this.myForm.value.adjustment = 100; }
-        else if (this.myForm.value.adjustment < -100) { this.myForm.value.adjustment = -100; }
+        else if (+e.target.value > 100) { this.currentAttempt.anwsers[i].adjustment = 100; }
+        else if (+e.target.value < -100) { this.currentAttempt.anwsers[i].adjustment = -100; }
+        else {
+            this.currentAttempt.anwsers[i].adjustment = +e.target.value;
+        }
+        this.myForm.value.adjustment = this.currentAttempt.anwsers[i].adjustment;
+        this.updateStats(i);
     }
-
 
     changedNote(anwserID: number, e: any) {
         console.log("note change");
